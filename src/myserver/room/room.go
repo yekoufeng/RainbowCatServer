@@ -84,17 +84,25 @@ func (this *Room) Start() {
 //主循环
 func (this *Room) Loop() {
 	glog.Error("房间loop 开始")
-	//TODO 房间倒计时!!
+	var timer1 = time.NewTimer(time.Second * consts.OneGameTime)
+	var timer2 = time.NewTimer(time.Second * consts.CountDownTime)
 	for {
-		op := <-this.chan_PlayerCmd
-		if this.isInGame {
-			player, ok := this.Players[op.PlayerID]
-			if ok {
-				//glog.Error("[CMD] cmd = ", op.Cmd, " playerId = ", op.PlayerID)
-				player.OnRecvPlayerCmd(op.Cmd, op.Data, op.Flag)
-			} else {
-				glog.Error("PlayerCmd:no player,", op.PlayerID, " cmd:", op.Cmd)
+		select {
+		case op := <-this.chan_PlayerCmd:
+			if this.isInGame {
+				player, ok := this.Players[op.PlayerID]
+				if ok {
+					//glog.Error("[CMD] cmd = ", op.Cmd, " playerId = ", op.PlayerID)
+					player.OnRecvPlayerCmd(op.Cmd, op.Data, op.Flag)
+				} else {
+					glog.Error("PlayerCmd:no player,", op.PlayerID, " cmd:", op.Cmd)
+				}
 			}
+		case <-timer1.C:
+			glog.Error("游戏结束 游戏进行1分钟")
+			this.handleGameOver()
+		case <-timer2.C:
+			glog.Error("游戏进行10秒钟")
 		}
 	}
 }
