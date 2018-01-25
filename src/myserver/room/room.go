@@ -131,7 +131,7 @@ func (this *Room) handleGameOver() {
 }
 
 func (this *Room) AddPlayer(id []uint32) {
-	if len(id) != 2 {
+	if len(id) != consts.OneGamePlayerNum {
 		glog.Error("room 人数不匹配 error")
 	}
 	this.SceneInit()

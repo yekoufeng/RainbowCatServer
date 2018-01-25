@@ -3,6 +3,7 @@ package roommgr
 import (
 	"base/glog"
 	"math/rand"
+	"myserver/consts"
 	rm "myserver/room"
 	"sync"
 )
@@ -45,7 +46,7 @@ func (this *RoomMgr) AddSearchPlayer(id uint32) {
 	waitingNums := len(this.searchPlayers)
 
 	glog.Error("[匹配] 添加 [", id, "] 到匹配队列, 当前队列人数 ", waitingNums)
-	if waitingNums == 2 {
+	if waitingNums == consts.OneGamePlayerNum {
 		//从队列删除前两个数据
 		searchSuccessPlayerIds := this.searchPlayers[:waitingNums]
 		this.searchPlayers = this.searchPlayers[waitingNums:]
@@ -77,7 +78,7 @@ func (this *RoomMgr) DeleteSearchPlayer(id uint32) {
 func (this *RoomMgr) NewAndAddRoom(playerIds []uint32) {
 	num := len(playerIds)
 	glog.Error("匹配成功 匹配人数 = ", num)
-	if num != 2 {
+	if num != consts.OneGamePlayerNum {
 		glog.Error("匹配人数error")
 		return
 	}
