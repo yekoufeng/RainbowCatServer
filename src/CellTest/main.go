@@ -2,18 +2,18 @@ package main
 
 import (
 	"base/glog"
-	"time"
+	"math"
+	"myserver/consts"
 )
 
 func main() {
-	timer := time.NewTimer(time.Second * 5)
+	tmprow, tmpcol := whichCell(19.4, 11, 19.4)
+	glog.Error("row = ", tmprow, " col = ", tmpcol)
+}
 
-	go func() {
-		<-timer.C
-		glog.Error("debug")
-	}()
-
-	for true {
-
-	}
+func whichCell(px float32, py float32, pz float32) (uint32, uint32) {
+	//TODO -1.0  -1.0有bug  因为是-0
+	col := math.Ceil(float64(px/consts.CellLength) - 0.5)
+	row := math.Ceil(float64(pz/consts.CellLength) - 0.5)
+	return uint32(row), uint32(col)
 }

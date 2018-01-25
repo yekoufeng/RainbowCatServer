@@ -2,6 +2,7 @@ package scene
 
 import (
 	"base/glog"
+	"math"
 	"myserver/consts"
 	_ "myserver/interfaces"
 	_ "myserver/playertaskmgr"
@@ -15,11 +16,8 @@ type Scene struct {
 	PlayerIdsBlue   []uint32          //蓝队
 	PlayerIdsYellow []uint32          //黄队
 	PlayerIdsRed    []uint32          //红队
-	CellNumBlue     uint32            //蓝队目前的格子数
-	CellNumYellow   uint32            //黄队目前的格子数
-	CellNumRed      uint32            //红队目前的格子数
-	MaxCellNum      uint32            //当前游戏领先队伍拥有的格子数目
 	MaxCellColor    usercmd.ColorType //当前游戏领先队伍拥有的格子颜色
+	CellColorNum    map[usercmd.ColorType]uint32
 }
 
 func (this *Scene) SceneInit() {
@@ -34,6 +32,13 @@ func (this *Scene) SceneInit() {
 		}
 		this.Cells = append(this.Cells, tmpArr)
 	}
+	this.CellColorNum = make(map[usercmd.ColorType]uint32)
+	this.CellColorNum[usercmd.ColorType_blue] = 0
+	this.CellColorNum[usercmd.ColorType_red] = 0
+	this.CellColorNum[usercmd.ColorType_yellow] = 0
+	this.CellColorNum[usercmd.ColorType_origin] = consts.CellNum * consts.CellNum
+	//默认最大颜色是原始
+	this.MaxCellColor = usercmd.ColorType_origin
 	glog.Error("SceneInit() success")
 }
 
@@ -51,8 +56,8 @@ func (this *Scene) InitPlayerPosition() {
 		} else {
 			p.SetPosition(0, 10, 0)
 			p.SetRowCol(0, 0)
-			p.Color = usercmd.ColorType_yellow
-			this.PlayerIdsYellow = append(this.PlayerIdsYellow, id)
+			p.Color = usercmd.ColorType_blue
+			this.PlayerIdsYellow = append(this.PlayerIdsBlue, id)
 		}
 	}
 
@@ -73,38 +78,57 @@ func (this *Scene) SetCellColor(row uint32, col uint32, color usercmd.ColorType)
 	if color != tmpLastColor {
 		this.AddColorNum(color)
 	}
-	if tmpLastColor != usercmd.ColorType_origin {
-		this.DeleteColorNum(tmpLastColor)
+	this.DeleteColorNum(tmpLastColor)
+
+	//更新max
+	//如果最大值颜色是原始，则覆盖最大值颜色
+	if this.MaxCellColor == usercmd.ColorType_origin {
+		this.MaxCellColor = color
+	}
+	//如果最大值颜色是本身，则不变
+	//如果最大值颜色不是本身，则比较
+	//如果+1的颜色队伍超过了最大值颜色的队伍，那么最大值颜色队伍就是+1的队伍
+	if this.CellColorNum[color] > this.CellColorNum[this.MaxCellColor] {
+		this.MaxCellColor = color
 	}
 	this.Cells[int(row)][int(col)].SetColor(color)
 }
 
 func (this *Scene) GetCellColor(row uint32, col uint32) usercmd.ColorType {
-	//TODO 貌似有bug
-	if int(row) < 0 || row > consts.CellNum || int(col) < 0 || col > consts.CellNum {
-		glog.Error("[bug] error row or col ", row, " ", col)
-	}
 	return this.Cells[int(row)][int(col)].GetColor()
 }
 
 //TODO 加锁 或者 chan
 func (this *Scene) AddColorNum(color usercmd.ColorType) {
 	if color == usercmd.ColorType_blue {
-		this.CellNumBlue++
+		this.CellColorNum[usercmd.ColorType_blue]++
 	} else if color == usercmd.ColorType_yellow {
-		this.CellNumYellow++
+		this.CellColorNum[usercmd.ColorType_yellow]++
 	} else if color == usercmd.ColorType_red {
-		this.CellNumRed++
+		this.CellColorNum[usercmd.ColorType_red]++
 	}
 }
 
 //TODO 加锁 或者 chan
 func (this *Scene) DeleteColorNum(color usercmd.ColorType) {
 	if color == usercmd.ColorType_blue {
-		this.CellNumBlue--
+		this.CellColorNum[usercmd.ColorType_blue]--
 	} else if color == usercmd.ColorType_yellow {
-		this.CellNumYellow--
+		this.CellColorNum[usercmd.ColorType_yellow]--
 	} else if color == usercmd.ColorType_red {
-		this.CellNumRed--
+		this.CellColorNum[usercmd.ColorType_red]--
+	} else if color == usercmd.ColorType_origin {
+		this.CellColorNum[usercmd.ColorType_origin]--
 	}
+}
+
+func whichCell(px float32, py float32, pz float32) (uint32, uint32, bool) {
+	//TODO -1.0  -1.0有bug  因为是-0
+	col := math.Ceil(float64(px/consts.CellLength) - 0.5)
+	row := math.Ceil(float64(pz/consts.CellLength) - 0.5)
+	if int(row) < 0 || uint32(row) > consts.CellNum-1 || int(col) < 0 || uint32(col) > consts.CellNum-1 {
+		glog.Error("[bug] error row or col ", row, " ", col)
+		return 0, 0, false
+	}
+	return uint32(row), uint32(col), true
 }

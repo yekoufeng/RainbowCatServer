@@ -102,20 +102,25 @@ func (this *Room) Loop() {
 			glog.Error("游戏结束 游戏进行1分钟")
 			this.handleGameOver()
 		case <-timer2.C:
-			glog.Error("游戏进行10秒钟")
+			glog.Error("游戏进行10秒钟 能量条开始计算")
+			this.handleGameEnergy()
 		}
 	}
+}
+
+func (this *Room) handleGameEnergy() {
+	//TODO 能量条
 }
 
 func (this *Room) handleGameOver() {
 	m := usercmd.GameEndS2CMsg{
 		Color: this.MaxCellColor,
-		Num:   this.MaxCellNum,
+		Num:   this.CellColorNum[this.MaxCellColor],
 	}
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameEnd), &m)
 	//广播
 	this.BroadCastMsg(d, f)
-	glog.Error("获胜队伍颜色是", this.MaxCellColor, " num=", this.MaxCellNum)
+	glog.Error("获胜队伍颜色是", this.MaxCellColor, " num=", this.CellColorNum[this.MaxCellColor])
 }
 
 func (this *Room) AddPlayer(id []uint32) {

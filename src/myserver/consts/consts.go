@@ -1,7 +1,7 @@
 package consts
 
 const (
-	CellLength       float32 = 6.5 //方块正方形边长大小
+	CellLength       float32 = 1.0 //方块正方形边长大小
 	CellNum          uint32  = 20  //方块正方形边长个数
 	OneGameTime              = 60  //一分钟
 	CountDownTime            = 10  //10秒

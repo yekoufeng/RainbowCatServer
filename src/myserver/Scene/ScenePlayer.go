@@ -3,8 +3,6 @@ package scene
 import (
 	"base/glog"
 	"common"
-	"math"
-	"myserver/consts"
 	"myserver/interfaces"
 	"myserver/playertaskmgr"
 	"usercmd"
@@ -82,7 +80,11 @@ func (this *ScenePlayer) HandleMove(px float32, py float32, pz float32) {
 
 func (this *ScenePlayer) handleMoveColor() {
 	//获得当前坐标所在格子，判断是否进入下一个格子
-	tmprow, tmpcol := whichCell(this.posX, this.posY, this.posZ)
+	tmprow, tmpcol, ok := whichCell(this.posX, this.posY, this.posZ)
+	if !ok {
+		glog.Error("坐标有问题bug")
+		return
+	}
 	if tmprow != this.nowrow || tmpcol != this.nowcol {
 		//进入新的格子
 		tmpLastColor := this.room.GetCellColor(tmprow, tmpcol)
@@ -106,11 +108,4 @@ func (this *ScenePlayer) handleMoveColor() {
 		this.nowrow = tmprow
 		this.nowcol = tmpcol
 	}
-}
-
-func whichCell(px float32, py float32, pz float32) (uint32, uint32) {
-	//TODO -1.0  -1.0有bug  因为是-0
-	col := math.Ceil(float64(px/consts.CellLength) - 0.5)
-	row := math.Ceil(float64(pz/consts.CellLength) - 0.5)
-	return uint32(row), uint32(col)
 }
