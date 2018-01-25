@@ -17,10 +17,10 @@ type ScenePlayer struct {
 	posX                    float32
 	posY                    float32
 	posZ                    float32
-	nowrow                  uint32
-	nowcol                  uint32
-	Color                   usercmd.ColorType
-	nowcellnum              uint32 //当前所拥有的格数
+	nowrow                  uint32            //当前所在格子行
+	nowcol                  uint32            //当前所在格子列
+	Color                   usercmd.ColorType //玩家颜色
+	nowcellnum              uint32            //当前所拥有的格数
 }
 
 func NewScenePlayer(id uint32, rm interfaces.IRoom) *ScenePlayer {

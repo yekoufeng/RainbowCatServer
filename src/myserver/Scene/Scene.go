@@ -20,7 +20,7 @@ type Scene struct {
 func (this *Scene) SceneInit() {
 	glog.Error("SceneInit()...")
 	this.Players = make(map[uint32]*ScenePlayer)
-
+	//初始化格子颜色 origin
 	count := int(consts.CellNum)
 	for i := 0; i < count; i++ {
 		var tmpArr []Cell
@@ -33,9 +33,10 @@ func (this *Scene) SceneInit() {
 }
 
 func (this *Scene) InitPlayerPosition() {
-	if len(this.Players) != 2 {
+	if len(this.Players) != consts.OneGamePlayerNum {
 		glog.Error("debug 人数超出两人!")
 	}
+	//TODO 分配位置 分配队伍
 	for id, p := range this.Players {
 		if len(this.PlayerIdsBlue) == 0 {
 			p.SetPosition(123.5, 10, 123.5)
