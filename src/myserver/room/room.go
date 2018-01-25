@@ -108,26 +108,14 @@ func (this *Room) Loop() {
 }
 
 func (this *Room) handleGameOver() {
-	var tmpId uint32 = 0
-	var tmpNum uint32 = 0
-	tmpStr := ""
-	if this.CellNumBlue > this.CellNumGreen {
-		tmpId = this.PlayerIdsBlue[0]
-		tmpNum = this.CellNumBlue
-		tmpStr = "蓝队"
-	} else {
-		tmpId = this.PlayerIdsGreen[0]
-		tmpNum = this.CellNumGreen
-		tmpStr = "绿队"
-	}
 	m := usercmd.GameEndS2CMsg{
-		Id:  tmpId,
-		Num: tmpNum,
+		Color: this.MaxCellColor,
+		Num:   this.MaxCellNum,
 	}
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameEnd), &m)
 	//广播
 	this.BroadCastMsg(d, f)
-	glog.Error("获胜队伍是", tmpStr, " id=", tmpId, " num=", tmpNum)
+	glog.Error("获胜队伍颜色是", this.MaxCellColor, " num=", this.MaxCellNum)
 }
 
 func (this *Room) AddPlayer(id []uint32) {

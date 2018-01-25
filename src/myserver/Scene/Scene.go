@@ -9,12 +9,17 @@ import (
 )
 
 type Scene struct {
-	Players        map[uint32]*ScenePlayer // 玩家对象
-	Cells          [][]Cell                //格子
-	PlayerIdsBlue  []uint32                //蓝队
-	PlayerIdsGreen []uint32                //绿队
-	CellNumBlue    uint32                  //蓝队目前的格子数
-	CellNumGreen   uint32                  //绿队目前的格子数
+	Players map[uint32]*ScenePlayer // 玩家对象
+	Cells   [][]Cell                //格子
+
+	PlayerIdsBlue   []uint32          //蓝队
+	PlayerIdsYellow []uint32          //黄队
+	PlayerIdsRed    []uint32          //红队
+	CellNumBlue     uint32            //蓝队目前的格子数
+	CellNumYellow   uint32            //黄队目前的格子数
+	CellNumRed      uint32            //红队目前的格子数
+	MaxCellNum      uint32            //当前游戏领先队伍拥有的格子数目
+	MaxCellColor    usercmd.ColorType //当前游戏领先队伍拥有的格子颜色
 }
 
 func (this *Scene) SceneInit() {
@@ -39,15 +44,15 @@ func (this *Scene) InitPlayerPosition() {
 	//TODO 分配位置 分配队伍
 	for id, p := range this.Players {
 		if len(this.PlayerIdsBlue) == 0 {
-			p.SetPosition(123.5, 10, 123.5)
+			p.SetPosition(19.5, 10, 19.5)
 			p.SetRowCol(19, 19)
 			p.Color = usercmd.ColorType_blue
 			this.PlayerIdsBlue = append(this.PlayerIdsBlue, id)
 		} else {
 			p.SetPosition(0, 10, 0)
 			p.SetRowCol(0, 0)
-			p.Color = usercmd.ColorType_green
-			this.PlayerIdsGreen = append(this.PlayerIdsGreen, id)
+			p.Color = usercmd.ColorType_yellow
+			this.PlayerIdsYellow = append(this.PlayerIdsYellow, id)
 		}
 	}
 
@@ -75,21 +80,31 @@ func (this *Scene) SetCellColor(row uint32, col uint32, color usercmd.ColorType)
 }
 
 func (this *Scene) GetCellColor(row uint32, col uint32) usercmd.ColorType {
+	//TODO 貌似有bug
+	if int(row) < 0 || row > consts.CellNum || int(col) < 0 || col > consts.CellNum {
+		glog.Error("[bug] error row or col ", row, " ", col)
+	}
 	return this.Cells[int(row)][int(col)].GetColor()
 }
 
+//TODO 加锁 或者 chan
 func (this *Scene) AddColorNum(color usercmd.ColorType) {
 	if color == usercmd.ColorType_blue {
 		this.CellNumBlue++
-	} else if color == usercmd.ColorType_green {
-		this.CellNumGreen++
+	} else if color == usercmd.ColorType_yellow {
+		this.CellNumYellow++
+	} else if color == usercmd.ColorType_red {
+		this.CellNumRed++
 	}
 }
 
+//TODO 加锁 或者 chan
 func (this *Scene) DeleteColorNum(color usercmd.ColorType) {
 	if color == usercmd.ColorType_blue {
 		this.CellNumBlue--
-	} else if color == usercmd.ColorType_green {
-		this.CellNumGreen--
+	} else if color == usercmd.ColorType_yellow {
+		this.CellNumYellow--
+	} else if color == usercmd.ColorType_red {
+		this.CellNumRed--
 	}
 }
