@@ -56,8 +56,8 @@ func (this *Scene) InitPlayerPosition() {
 		} else {
 			p.SetPosition(0, 10, 0)
 			p.SetRowCol(0, 0)
-			p.Color = usercmd.ColorType_blue
-			this.PlayerIdsYellow = append(this.PlayerIdsBlue, id)
+			p.Color = usercmd.ColorType_yellow
+			this.PlayerIdsYellow = append(this.PlayerIdsYellow, id)
 		}
 	}
 
