@@ -100,7 +100,7 @@ func (this *Room) Loop() {
 			}
 		case <-timer1.C:
 			glog.Error("游戏结束 游戏进行1分钟")
-			this.handleGameOver()
+			this.HandleGameOver(usercmd.ColorType_origin)
 		case <-timer2.C:
 			glog.Error("游戏进行10秒钟 能量条开始计算")
 			this.handleGameEnergy()
@@ -109,21 +109,31 @@ func (this *Room) Loop() {
 }
 
 func (this *Room) handleGameEnergy() {
-	//TODO 关闭计时器
 	var timer = time.NewTicker((time.Millisecond * consts.EnergyRepeatedTime))
+
 	go func() {
 		for true {
 			<-timer.C
 			//能量条一次
 			this.AddEnergyInScene()
+			if !this.isInGame {
+				timer.Stop()
+			}
 		}
 	}()
 }
 
-func (this *Room) handleGameOver() {
+func (this *Room) HandleGameOver(color usercmd.ColorType) {
+	this.isInGame = false
 	m := usercmd.GameEndS2CMsg{
-		Color: this.MaxCellColor,
-		Num:   this.CellColorNum[this.MaxCellColor],
+		Color: color,
+		Num:   this.CellColorNum[color],
+	}
+	if color == usercmd.ColorType_origin {
+		//没有一个队伍达到100%
+		//根据max来判断谁获胜
+		m.Color = this.MaxCellColor
+		m.Num = this.CellColorNum[this.MaxCellColor]
 	}
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameEnd), &m)
 	//广播

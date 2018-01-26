@@ -4,11 +4,23 @@ import (
 	"base/glog"
 	"math"
 	"myserver/consts"
+	"time"
 )
 
 func main() {
-	tmprow, tmpcol := whichCell(19.4, 11, 19.4)
-	glog.Error("row = ", tmprow, " col = ", tmpcol)
+	//	tmprow, tmpcol := whichCell(19.4, 11, 19.4)
+	//	glog.Error("row = ", tmprow, " col = ", tmpcol)
+	var timer = time.NewTicker(time.Millisecond * 500)
+
+	go func() {
+		for true {
+			<-timer.C
+			glog.Error("0.5s")
+		}
+
+	}()
+	for true {
+	}
 }
 
 func whichCell(px float32, py float32, pz float32) (uint32, uint32) {

@@ -22,6 +22,8 @@ type Scene struct {
 	EnergyRed       uint32 //红队能量
 	EnergyBlue      uint32 //蓝队能量
 	EnergyYellow    uint32 //黄队能量
+
+	isInGame bool //room通知是否还在游戏中
 }
 
 func (this *Scene) SceneInit() {
@@ -48,7 +50,8 @@ func (this *Scene) SceneInit() {
 
 func (this *Scene) InitPlayerPosition() {
 	if len(this.Players) != consts.OneGamePlayerNum {
-		glog.Error("debug 人数超出两人!")
+		glog.Error("debug 人数超出设定人数!")
+		return
 	}
 	//TODO 分配位置 分配队伍
 	for id, p := range this.Players {
@@ -132,13 +135,32 @@ func (this *Scene) AddEnergyInScene() {
 	case usercmd.ColorType_red:
 		this.EnergyRed++
 		glog.Error("红队能量条+1")
+		if this.EnergyRed == consts.TotalEnergyNum {
+			if len(this.PlayerIdsRed) < 1 {
+				glog.Error("[bug] 获胜队伍没有成员")
+			}
+			this.Players[this.PlayerIdsRed[0]].WinGame()
+		}
 	case usercmd.ColorType_blue:
 		this.EnergyBlue++
 		glog.Error("蓝队能量条+1")
+		if this.EnergyBlue == consts.TotalEnergyNum {
+			if len(this.PlayerIdsBlue) < 1 {
+				glog.Error("[bug] 获胜队伍没有成员")
+			}
+			this.Players[this.PlayerIdsBlue[0]].WinGame()
+		}
 	case usercmd.ColorType_yellow:
 		this.EnergyYellow++
 		glog.Error("黄队能量条+1")
+		if this.EnergyYellow == consts.TotalEnergyNum {
+			if len(this.PlayerIdsYellow) < 1 {
+				glog.Error("[bug] 获胜队伍没有成员")
+			}
+			this.Players[this.PlayerIdsYellow[0]].WinGame()
+		}
 	}
+
 }
 
 func whichCell(px float32, py float32, pz float32) (uint32, uint32, bool) {

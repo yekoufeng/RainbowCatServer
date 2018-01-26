@@ -13,4 +13,5 @@ type IRoom interface {
 	GetCellColor(row uint32, col uint32) usercmd.ColorType
 	AddColorNum(color usercmd.ColorType)
 	DeleteColorNum(color usercmd.ColorType)
+	HandleGameOver(color usercmd.ColorType)
 }

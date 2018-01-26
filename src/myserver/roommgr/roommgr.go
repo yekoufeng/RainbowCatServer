@@ -46,6 +46,7 @@ func (this *RoomMgr) AddSearchPlayer(id uint32) {
 	waitingNums := len(this.searchPlayers)
 
 	glog.Error("[匹配] 添加 [", id, "] 到匹配队列, 当前队列人数 ", waitingNums)
+	glog.Error(waitingNums, " ", consts.OneGamePlayerNum)
 	if waitingNums == consts.OneGamePlayerNum {
 		//从队列删除前两个数据
 		searchSuccessPlayerIds := this.searchPlayers[:waitingNums]

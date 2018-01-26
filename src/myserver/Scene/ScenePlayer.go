@@ -108,3 +108,7 @@ func (this *ScenePlayer) handleMoveColor() {
 		this.nowcol = tmpcol
 	}
 }
+
+func (this *ScenePlayer) WinGame() {
+	this.room.HandleGameOver(this.Color)
+}

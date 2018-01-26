@@ -80,7 +80,7 @@ func (this *playertask) OnClose() {
 }
 
 func main() {
-	conn, _ := net.Dial("tcp", "192.168.240.241:8000")
+	conn, _ := net.Dial("tcp", "127.0.0.1:8000")
 	s := &playertask{
 		TcpTask: *gonet.NewTcpTask(conn),
 	}

@@ -28,14 +28,14 @@ func (this *MyServer) Init() bool {
 	rand.Seed(time.Now().Unix())
 
 	// 绑定本地端口
-	var address string = "192.168.240.241:8000"
+	var address string = "127.0.0.1:8000"
 	err := this.myser.Bind(address)
 	if err != nil {
 		glog.Error("绑定端口失败")
 		return false
 	}
 	glog.Error("完成初始化")
-	glog.Error("监听端口 192.168.240.241:8000")
+	glog.Error("监听端口 127.0.0.1:8000")
 	return true
 }
 
