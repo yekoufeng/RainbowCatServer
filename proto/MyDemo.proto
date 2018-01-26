@@ -13,7 +13,7 @@ enum DemoTypeCmd {
 	ChangeColorRes = 9;
 	GameEnd = 10;//游戏结束
 	
-	CountDown = 11;//倒计时
+	GameEnergy = 11;//能量条信息
 }
 //客户端发送当前位置
 message MoveC2SMsg{
@@ -93,7 +93,8 @@ message GameEndS2CMsg{
 }
 
 //服务器主动推送
-//开始计算攒能量
-message CountDownS2CMsg{
-	required colorType color = 1;
+//能量条信息
+message GameEnergyS2CMsg{
+	required colorType color = 1;  //当前显示什么颜色
+	required uint32 status = 2;		//队伍颜色能量进度条进度值
 }
