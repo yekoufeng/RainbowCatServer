@@ -54,6 +54,7 @@ func (this *MyServer) Final() bool {
 	return true
 }
 
+//TODO Test
 func main() {
 	//初始化房间管理器 玩家会话管理器
 	roommgr.GetMe()
