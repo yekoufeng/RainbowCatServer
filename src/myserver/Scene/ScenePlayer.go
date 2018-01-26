@@ -95,9 +95,8 @@ func (this *ScenePlayer) handleMoveColor() {
 		}
 		//玩家当前自己占领格子加一
 		this.nowcellnum++
-
 		this.room.SetCellColor(tmprow, tmpcol, this.Color)
-		glog.Error("变色 该位置所属格子为 row = ", tmprow, " col = ", tmpcol)
+		glog.Error("变色", this.Color, " 该位置所属格子为 row = ", tmprow, " col = ", tmpcol)
 		m := usercmd.ChangeColorS2CMsg{
 			Color: this.Color,
 			Row:   tmprow,

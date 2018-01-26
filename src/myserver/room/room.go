@@ -109,7 +109,15 @@ func (this *Room) Loop() {
 }
 
 func (this *Room) handleGameEnergy() {
-	//TODO 能量条
+	//TODO 关闭计时器
+	var timer = time.NewTicker((time.Millisecond * consts.EnergyRepeatedTime))
+	go func() {
+		for true {
+			<-timer.C
+			//能量条一次
+			this.AddEnergyInScene()
+		}
+	}()
 }
 
 func (this *Room) handleGameOver() {

@@ -9,6 +9,7 @@ import (
 	"usercmd"
 )
 
+//TODO 抽出队伍抽象struct
 type Scene struct {
 	Players map[uint32]*ScenePlayer // 玩家对象
 	Cells   [][]Cell                //格子
@@ -18,6 +19,9 @@ type Scene struct {
 	PlayerIdsRed    []uint32          //红队
 	MaxCellColor    usercmd.ColorType //当前游戏领先队伍拥有的格子颜色
 	CellColorNum    map[usercmd.ColorType]uint32
+	EnergyRed       uint32 //红队能量
+	EnergyBlue      uint32 //蓝队能量
+	EnergyYellow    uint32 //黄队能量
 }
 
 func (this *Scene) SceneInit() {
@@ -51,8 +55,8 @@ func (this *Scene) InitPlayerPosition() {
 		if len(this.PlayerIdsBlue) == 0 {
 			p.SetPosition(19.5, 10, 19.5)
 			p.SetRowCol(19, 19)
-			p.Color = usercmd.ColorType_blue
-			this.PlayerIdsBlue = append(this.PlayerIdsBlue, id)
+			p.Color = usercmd.ColorType_yellow
+			this.PlayerIdsBlue = append(this.PlayerIdsYellow, id)
 		} else {
 			p.SetPosition(0, 10, 0)
 			p.SetRowCol(0, 0)
@@ -119,6 +123,21 @@ func (this *Scene) DeleteColorNum(color usercmd.ColorType) {
 		this.CellColorNum[usercmd.ColorType_red]--
 	} else if color == usercmd.ColorType_origin {
 		this.CellColorNum[usercmd.ColorType_origin]--
+	}
+}
+
+func (this *Scene) AddEnergyInScene() {
+	//根据当前领先队伍颜色增加能量条
+	switch this.MaxCellColor {
+	case usercmd.ColorType_red:
+		this.EnergyRed++
+		glog.Error("红队能量条+1")
+	case usercmd.ColorType_blue:
+		this.EnergyBlue++
+		glog.Error("蓝队能量条+1")
+	case usercmd.ColorType_yellow:
+		this.EnergyYellow++
+		glog.Error("黄队能量条+1")
 	}
 }
 

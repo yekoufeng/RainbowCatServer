@@ -12,7 +12,7 @@ type Cell struct {
 
 func NewCell(tmprow int, tmpcol int) Cell {
 	tmp := Cell{
-		color: usercmd.ColorType_red,
+		color: usercmd.ColorType_origin,
 		row:   uint32(tmprow),
 		col:   uint32(tmpcol),
 	}
