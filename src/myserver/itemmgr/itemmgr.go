@@ -7,7 +7,7 @@ import (
 	"myserver/consts"
 	"myserver/interfaces"
 	"myserver/item"
-	"time"
+	_ "time"
 	"usercmd"
 )
 
@@ -19,22 +19,22 @@ type ItemMgr struct {
 func (this *ItemMgr) StartLoop() {
 	//道具循环开始入口
 	glog.Error("[start] Item loop")
-	timer := time.NewTicker(time.Second * consts.ItemLiveTime)
+	//timer := time.NewTicker(time.Second * consts.ItemLiveTime)
 	for n := 0; n < consts.ItemNumOneTime; n++ {
 		this.CreateItem()
 	}
 	glog.Error("当前场景道具总数: ", len(this.items))
-	go func() {
-		for true {
-			<-timer.C
-			glog.Error("道具刷新")
-			if !this.Scene.IsInGame() {
-				timer.Stop()
-				glog.Error("道具管理结束loop")
-			}
-			this.RefreshItem()
-		}
-	}()
+	//	go func() {
+	//		for true {
+	//			<-timer.C
+	//			glog.Error("道具刷新")
+	//			if !this.Scene.IsInGame() {
+	//				timer.Stop()
+	//				glog.Error("道具管理结束loop")
+	//			}
+	//			this.RefreshItem()
+	//		}
+	//	}()
 }
 
 func (this *ItemMgr) CreateItem() {
@@ -102,4 +102,14 @@ func (this *ItemMgr) DeleteOneItem(row uint32, col uint32) {
 			return
 		}
 	}
+}
+
+func (this *ItemMgr) GetItemByRowCol(row uint32, col uint32) usercmd.ItemType {
+	for _, itemTmp := range this.items {
+		if itemTmp.Row == row && itemTmp.Col == col {
+			return itemTmp.ItemType
+		}
+	}
+	glog.Error("[bug]  应该存在对应的道具")
+	return usercmd.ItemType_unknown
 }

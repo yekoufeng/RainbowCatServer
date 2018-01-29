@@ -112,7 +112,7 @@ func (this *Room) Loop() {
 				repeatedTimer.Stop()
 				glog.Error("房间loop停止")
 			}
-			glog.Error("tloop = ", this.tloop)
+			//glog.Error("tloop = ", this.tloop)
 			//默认同步所有客户端一次时间
 			this.handleSynTime()
 			if this.tloop == consts.CountDownTime {

@@ -59,6 +59,7 @@ func (this *Scene) InitPlayerPosition() {
 	}
 	//TODO 分配位置 分配队伍
 	for id, p := range this.Players {
+		p.PlayerId = id
 		if len(this.PlayerIdsBlue) == 0 {
 			p.SetPosition(19.5, 10, 19.5)
 			p.SetRowCol(19, 19)
@@ -149,7 +150,7 @@ func (this *Scene) AddEnergyInScene() {
 	case usercmd.ColorType_red:
 		this.EnergyRed++
 		tmpStatue = this.EnergyRed
-		glog.Error("红队能量条+1")
+		//glog.Error("红队能量条+1")
 		tmpPlayer = this.Players[this.PlayerIdsRed[0]]
 		if this.EnergyRed == consts.TotalEnergyNum {
 			if len(this.PlayerIdsRed) < 1 {
@@ -160,7 +161,7 @@ func (this *Scene) AddEnergyInScene() {
 	case usercmd.ColorType_blue:
 		this.EnergyBlue++
 		tmpStatue = this.EnergyBlue
-		glog.Error("蓝队能量条+1")
+		//glog.Error("蓝队能量条+1")
 		tmpPlayer = this.Players[this.PlayerIdsBlue[0]]
 		if this.EnergyBlue == consts.TotalEnergyNum {
 			if len(this.PlayerIdsBlue) < 1 {
@@ -171,7 +172,7 @@ func (this *Scene) AddEnergyInScene() {
 	case usercmd.ColorType_yellow:
 		this.EnergyYellow++
 		tmpStatue = this.EnergyYellow
-		glog.Error("黄队能量条+1")
+		//glog.Error("黄队能量条+1")
 		tmpPlayer = this.Players[this.PlayerIdsYellow[0]]
 		if this.EnergyYellow == consts.TotalEnergyNum {
 			if len(this.PlayerIdsYellow) < 1 {
@@ -190,18 +191,28 @@ func (this *Scene) AddEnergyInScene() {
 }
 
 //从 a 格子 移动到 b 格子  对格子isPlayerOnMe参数修改
-func (this *Scene) MoveFromToCell(arow uint32, acol uint32, brow uint32, bcol uint32) {
-	cellTmp := this.Cells[int(arow)][int(acol)]
-	cellTmp.PlayerLeaveMe()
-	cellTmp.PlayerOnMe()
-	//判断是否吃到道具
-	if cellTmp.GetItemOnMe() {
-		//TODO  写玩家吃到后的消息
+func (this *Scene) MoveFromToCell(arow uint32, acol uint32, brow uint32, bcol uint32, pid uint32) {
+	this.Cells[int(arow)][int(acol)].PlayerLeaveMe()
+	this.Cells[int(brow)][int(bcol)].PlayerOnMe()
+	//判断格子上是否有道具
+	glog.Error("玩家从", arow, " ", acol, "运动到", brow, " ", bcol)
+	if this.Cells[int(brow)][int(bcol)].GetItemOnMe() {
 		//格子有道具属性变更
 		//道具管理那边也要去除道具
-		cellTmp.ItemLeaveMe()
-		this.ItemMgr.DeleteOneItem(arow, acol)
+		glog.Error("道具被玩家捡了 row = ", brow, " col = ", bcol)
+		this.Cells[int(brow)][int(bcol)].ItemLeaveMe()
+		this.ItemMgr.DeleteOneItem(brow, bcol)
+		this.GetItemToPlayer(pid, this.ItemMgr.GetItemByRowCol(brow, bcol))
 	}
+}
+
+func (this *Scene) GetItemToPlayer(pid uint32, itype usercmd.ItemType) {
+	//玩家获得道具type
+	playerTmp, ok := this.Players[pid]
+	if !ok {
+		glog.Error("[bug] wrong playerid")
+	}
+	playerTmp.GetItem(itype)
 }
 
 func (this *Scene) SetItemOnCell(row uint32, col uint32) {

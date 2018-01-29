@@ -12,6 +12,7 @@ type ScenePlayer struct {
 	ScenePlayerNetMsgHelper // 房间玩家协议处理辅助类
 	Sess                    interfaces.IPlayerTask
 	room                    interfaces.IRoom
+	PlayerId                uint32 //玩家id
 	posX                    float32
 	posY                    float32
 	posZ                    float32
@@ -32,6 +33,7 @@ func NewScenePlayer(id uint32, rm interfaces.IRoom) *ScenePlayer {
 		nowcol:     20,
 		Color:      usercmd.ColorType_origin,
 		nowcellnum: 0,
+		PlayerId:   0,
 	}
 	tmp.Init(tmp)
 	return tmp
@@ -87,17 +89,18 @@ func (this *ScenePlayer) handleMoveColor() {
 	}
 	if tmprow != this.nowrow || tmpcol != this.nowcol {
 		//进入新的格子
-		this.room.MoveFromToCell(this.nowrow, this.nowcol, tmprow, tmpcol)
+		this.room.MoveFromToCell(this.nowrow, this.nowcol, tmprow, tmpcol, this.PlayerId)
+		this.nowrow = tmprow
+		this.nowcol = tmpcol
 		tmpLastColor := this.room.GetCellColor(tmprow, tmpcol)
 		if tmpLastColor == this.Color {
 			//同队伍颜色，无需再发
-			//TODO
 			return
 		}
 		//玩家当前自己占领格子加一
 		this.nowcellnum++
 		this.room.SetCellColor(tmprow, tmpcol, this.Color)
-		//glog.Error("变色", this.Color, " 该位置所属格子为 row = ", tmprow, " col = ", tmpcol)
+		glog.Error("变色", this.Color, " 该位置所属格子为 row = ", tmprow, " col = ", tmpcol)
 		m := usercmd.ChangeColorS2CMsg{
 			Color: this.Color,
 			Row:   tmprow,
@@ -105,9 +108,12 @@ func (this *ScenePlayer) handleMoveColor() {
 		}
 		d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_ChangeColorRes), &m)
 		this.room.BroadCastMsg(d, f)
-		this.nowrow = tmprow
-		this.nowcol = tmpcol
+
 	}
+}
+
+func (this *ScenePlayer) GetItem(itype usercmd.ItemType) {
+	//TODO 玩家获得道具
 }
 
 func (this *ScenePlayer) WinGame() {
