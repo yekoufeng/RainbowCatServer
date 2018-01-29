@@ -4,6 +4,7 @@ import (
 	"base/glog"
 	"base/gonet"
 	"math/rand"
+	"myserver/consts"
 	"myserver/playertask"
 	"myserver/playertaskmgr"
 	"myserver/roommgr"
@@ -28,14 +29,14 @@ func (this *MyServer) Init() bool {
 	rand.Seed(time.Now().Unix())
 
 	// 绑定本地端口
-	var address string = "192.168.240.241:8000"
+	var address string = consts.IpAddress
 	err := this.myser.Bind(address)
 	if err != nil {
 		glog.Error("绑定端口失败")
 		return false
 	}
 	glog.Error("完成初始化")
-	glog.Error("监听端口 192.168.240.241:8000")
+	glog.Error("监听端口 ", consts.IpAddress)
 	return true
 }
 
