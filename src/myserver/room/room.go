@@ -26,6 +26,7 @@ type Room struct {
 	startTime      int64           // 开始时间
 	chan_PlayerCmd chan *PlayerCmd // 玩家输入
 	playerIds      []uint32        // playerIds
+	tloop          uint32          //房间当前进行时间
 }
 
 func NewRoom(rid uint32) *Room {
@@ -34,6 +35,7 @@ func NewRoom(rid uint32) *Room {
 		playerNum:      0,
 		isInGame:       false,
 		chan_PlayerCmd: make(chan *PlayerCmd, 1024),
+		tloop:          0,
 	}
 	return &room
 }
@@ -92,8 +94,7 @@ func (this *Room) Start() {
 //主循环
 func (this *Room) Loop() {
 	glog.Error("房间loop 开始")
-	var timer1 = time.NewTimer(time.Second * consts.OneGameTime)
-	var timer2 = time.NewTimer(time.Second * consts.CountDownTime)
+	var repeatedTimer = time.NewTicker(time.Second)
 	for {
 		select {
 		case op := <-this.chan_PlayerCmd:
@@ -106,14 +107,34 @@ func (this *Room) Loop() {
 					glog.Error("PlayerCmd:no player,", op.PlayerID, " cmd:", op.Cmd)
 				}
 			}
-		case <-timer1.C:
-			glog.Error("游戏结束 游戏进行1分钟")
-			this.HandleGameOver(usercmd.ColorType_origin)
-		case <-timer2.C:
-			glog.Error("游戏进行10秒钟 能量条开始计算")
-			this.handleGameEnergy()
+		case <-repeatedTimer.C:
+			if !this.isInGame {
+				repeatedTimer.Stop()
+				glog.Error("房间loop停止")
+			}
+			glog.Error("一秒 tloop = ", this.tloop)
+			//默认同步所有客户端一次时间
+			this.handleSynTime()
+			if this.tloop == consts.CountDownTime {
+				//充能开始
+				this.handleGameEnergy()
+			}
+			if this.tloop == consts.OneGameTime {
+				//一局游戏时间到
+				this.HandleGameOver(usercmd.ColorType_origin)
+			}
+			this.tloop++
 		}
 	}
+}
+
+//同步房间内时间 1秒一次
+func (this *Room) handleSynTime() {
+	m := usercmd.SynTimeS2CMsg{
+		Tloop: this.tloop,
+	}
+	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameTime), &m)
+	this.BroadCastMsg(d, f)
 }
 
 func (this *Room) handleGameEnergy() {
