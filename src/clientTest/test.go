@@ -4,6 +4,7 @@ import (
 	"base/glog"
 	"base/gonet"
 	"common"
+	"myserver/consts"
 	"net"
 	"os"
 	"strconv"
@@ -80,7 +81,7 @@ func (this *playertask) OnClose() {
 }
 
 func main() {
-	conn, _ := net.Dial("tcp", "127.0.0.1:8000")
+	conn, _ := net.Dial("tcp", consts.IpAddress)
 	s := &playertask{
 		TcpTask: *gonet.NewTcpTask(conn),
 	}

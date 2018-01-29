@@ -112,12 +112,16 @@ func (this *Room) Loop() {
 				repeatedTimer.Stop()
 				glog.Error("房间loop停止")
 			}
-			glog.Error("一秒 tloop = ", this.tloop)
+			glog.Error("tloop = ", this.tloop)
 			//默认同步所有客户端一次时间
 			this.handleSynTime()
 			if this.tloop == consts.CountDownTime {
 				//充能开始
 				this.handleGameEnergy()
+			}
+			if this.tloop == consts.ItemCreateTime {
+				//道具开始
+				this.handleItemCreate()
 			}
 			if this.tloop == consts.OneGameTime {
 				//一局游戏时间到
@@ -126,6 +130,11 @@ func (this *Room) Loop() {
 			this.tloop++
 		}
 	}
+}
+
+func (this *Room) handleItemCreate() {
+	//scene itemmgr函数
+	this.StartLoop()
 }
 
 //同步房间内时间 1秒一次
@@ -206,4 +215,8 @@ func (this *Room) BroadCastMsg(data []byte, flag byte) {
 	for _, player := range this.Players {
 		player.SendMsg(data, flag)
 	}
+}
+
+func (this *Room) IsInGame() bool {
+	return this.isInGame
 }

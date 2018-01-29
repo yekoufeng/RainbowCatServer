@@ -14,4 +14,6 @@ type IRoom interface {
 	AddColorNum(color usercmd.ColorType)
 	DeleteColorNum(color usercmd.ColorType)
 	HandleGameOver(color usercmd.ColorType)
+	MoveFromToCell(arow uint32, acol uint32, brow uint32, bcol uint32)
+	IsInGame() bool
 }

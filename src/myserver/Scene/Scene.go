@@ -4,38 +4,41 @@ import (
 	"base/glog"
 	"common"
 	"math"
+	"myserver/cell"
 	"myserver/consts"
 	_ "myserver/interfaces"
+	"myserver/itemmgr"
 	_ "myserver/playertaskmgr"
 	"usercmd"
 )
 
 //TODO 抽出队伍抽象struct
 type Scene struct {
-	Players map[uint32]*ScenePlayer // 玩家对象
-	Cells   [][]Cell                //格子
+	itemmgr.ItemMgr //道具管理
 
-	PlayerIdsBlue   []uint32          //蓝队
-	PlayerIdsYellow []uint32          //黄队
-	PlayerIdsRed    []uint32          //红队
-	MaxCellColor    usercmd.ColorType //当前游戏领先队伍拥有的格子颜色
+	Players         map[uint32]*ScenePlayer // 玩家对象
+	Cells           [][]cell.Cell           //格子
+	PlayerIdsBlue   []uint32                //蓝队
+	PlayerIdsYellow []uint32                //黄队
+	PlayerIdsRed    []uint32                //红队
+	MaxCellColor    usercmd.ColorType       //当前游戏领先队伍拥有的格子颜色
 	CellColorNum    map[usercmd.ColorType]uint32
 	EnergyRed       uint32 //红队能量
 	EnergyBlue      uint32 //蓝队能量
 	EnergyYellow    uint32 //黄队能量
-
-	isInGame bool //room通知是否还在游戏中
+	isInGame        bool   //room通知是否还在游戏中
 }
 
 func (this *Scene) SceneInit() {
-	glog.Error("SceneInit()...")
+	glog.Error("[init] SceneInit()...")
+	this.ItemMgr.Scene = this
 	this.Players = make(map[uint32]*ScenePlayer)
 	//初始化格子颜色 origin
 	count := int(consts.CellNum)
 	for i := 0; i < count; i++ {
-		var tmpArr []Cell
+		var tmpArr []cell.Cell
 		for j := 0; j < count; j++ {
-			tmpArr = append(tmpArr, NewCell(i, j))
+			tmpArr = append(tmpArr, cell.NewCell(i, j))
 		}
 		this.Cells = append(this.Cells, tmpArr)
 	}
@@ -46,7 +49,7 @@ func (this *Scene) SceneInit() {
 	this.CellColorNum[usercmd.ColorType_origin] = consts.CellNum * consts.CellNum
 	//默认最大颜色是原始
 	this.MaxCellColor = usercmd.ColorType_origin
-	glog.Error("SceneInit() success")
+	glog.Error("[init] SceneInit() success")
 }
 
 func (this *Scene) InitPlayerPosition() {
@@ -80,7 +83,7 @@ func (this *Scene) GetOnePlayerPosition(id uint32) (float32, float32, float32) {
 	return this.Players[id].GetPosition()
 }
 
-func (this *Scene) GetOneCellByRowCol(tmprow uint32, tmpcol uint32) Cell {
+func (this *Scene) GetOneCellByRowCol(tmprow uint32, tmpcol uint32) cell.Cell {
 	return this.Cells[int(tmprow)][int(tmpcol)]
 }
 
@@ -186,6 +189,39 @@ func (this *Scene) AddEnergyInScene() {
 	tmpPlayer.room.BroadCastMsg(d, f)
 }
 
+//从 a 格子 移动到 b 格子  对格子isPlayerOnMe参数修改
+func (this *Scene) MoveFromToCell(arow uint32, acol uint32, brow uint32, bcol uint32) {
+	cellTmp := this.Cells[int(arow)][int(acol)]
+	cellTmp.PlayerLeaveMe()
+	cellTmp.PlayerOnMe()
+	//判断是否吃到道具
+	if cellTmp.GetItemOnMe() {
+		//TODO  写玩家吃到后的消息
+		//格子有道具属性变更
+		//道具管理那边也要去除道具
+		cellTmp.ItemLeaveMe()
+		this.ItemMgr.DeleteOneItem(arow, acol)
+	}
+}
+
+func (this *Scene) SetItemOnCell(row uint32, col uint32) {
+	this.Cells[int(row)][int(col)].ItemOnMe()
+}
+
+func (this *Scene) DeleteItemOnCell(row uint32, col uint32) {
+	this.Cells[int(row)][int(col)].ItemLeaveMe()
+}
+
+func (this *Scene) IsPlayerOnCell(row uint32, col uint32) bool {
+	return this.Cells[int(row)][int(col)].GetPlayerOnMe()
+}
+
+func (this *Scene) BroadCastMsg(data []byte, flag byte) {
+	//TODO 默认取红队来发送消息 整个逻辑架构有问题
+	tmpPlayer := this.Players[this.PlayerIdsRed[0]]
+	tmpPlayer.room.BroadCastMsg(data, flag)
+}
+
 func whichCell(px float32, py float32, pz float32) (uint32, uint32, bool) {
 	//TODO -1.0  -1.0有bug  因为是-0
 	col := math.Ceil(float64(px/consts.CellLength) - 0.5)
@@ -195,4 +231,10 @@ func whichCell(px float32, py float32, pz float32) (uint32, uint32, bool) {
 		return 0, 0, false
 	}
 	return uint32(row), uint32(col), true
+}
+
+func (this *Scene) IsInGame() bool {
+	//TODO 默认取红队来发送消息 整个逻辑架构有问题
+	tmpPlayer := this.Players[this.PlayerIdsRed[0]]
+	return tmpPlayer.room.IsInGame()
 }
