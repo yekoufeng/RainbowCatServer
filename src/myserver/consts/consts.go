@@ -6,6 +6,6 @@ const (
 	OneGameTime                = 60  //一分钟
 	CountDownTime              = 10  //10秒
 	EnergyRepeatedTime         = 500 //0.5秒充能一次  500ms = 0.5s
-	OneGamePlayerNum           = 2   //一局游戏玩家人数
+	OneGamePlayerNum           = 3   //一局游戏玩家人数
 	TotalEnergyNum             = 100 //能量总数
 )

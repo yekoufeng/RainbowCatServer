@@ -2,6 +2,7 @@ package scene
 
 import (
 	"base/glog"
+	"common"
 	"math"
 	"myserver/consts"
 	_ "myserver/interfaces"
@@ -58,11 +59,16 @@ func (this *Scene) InitPlayerPosition() {
 		if len(this.PlayerIdsBlue) == 0 {
 			p.SetPosition(19.5, 10, 19.5)
 			p.SetRowCol(19, 19)
-			p.Color = usercmd.ColorType_yellow
-			this.PlayerIdsBlue = append(this.PlayerIdsYellow, id)
-		} else {
+			p.Color = usercmd.ColorType_blue
+			this.PlayerIdsBlue = append(this.PlayerIdsBlue, id)
+		} else if len(this.PlayerIdsRed) == 0 {
 			p.SetPosition(0, 10, 0)
 			p.SetRowCol(0, 0)
+			p.Color = usercmd.ColorType_red
+			this.PlayerIdsRed = append(this.PlayerIdsRed, id)
+		} else {
+			p.SetPosition(0, 10, 0)
+			p.SetRowCol(10, 10)
 			p.Color = usercmd.ColorType_yellow
 			this.PlayerIdsYellow = append(this.PlayerIdsYellow, id)
 		}
@@ -130,37 +136,54 @@ func (this *Scene) DeleteColorNum(color usercmd.ColorType) {
 }
 
 func (this *Scene) AddEnergyInScene() {
+	if this.MaxCellColor == usercmd.ColorType_origin {
+		return
+	}
+	var tmpStatue uint32 = 0
+	var tmpPlayer *ScenePlayer
 	//根据当前领先队伍颜色增加能量条
 	switch this.MaxCellColor {
 	case usercmd.ColorType_red:
 		this.EnergyRed++
+		tmpStatue = this.EnergyRed
 		glog.Error("红队能量条+1")
+		tmpPlayer = this.Players[this.PlayerIdsRed[0]]
 		if this.EnergyRed == consts.TotalEnergyNum {
 			if len(this.PlayerIdsRed) < 1 {
-				glog.Error("[bug] 获胜队伍没有成员")
+				glog.Error("[bug] 红色获胜队伍没有成员")
 			}
 			this.Players[this.PlayerIdsRed[0]].WinGame()
 		}
 	case usercmd.ColorType_blue:
 		this.EnergyBlue++
+		tmpStatue = this.EnergyBlue
 		glog.Error("蓝队能量条+1")
+		tmpPlayer = this.Players[this.PlayerIdsBlue[0]]
 		if this.EnergyBlue == consts.TotalEnergyNum {
 			if len(this.PlayerIdsBlue) < 1 {
-				glog.Error("[bug] 获胜队伍没有成员")
+				glog.Error("[bug] 蓝色获胜队伍没有成员")
 			}
 			this.Players[this.PlayerIdsBlue[0]].WinGame()
 		}
 	case usercmd.ColorType_yellow:
 		this.EnergyYellow++
+		tmpStatue = this.EnergyYellow
 		glog.Error("黄队能量条+1")
+		tmpPlayer = this.Players[this.PlayerIdsYellow[0]]
 		if this.EnergyYellow == consts.TotalEnergyNum {
 			if len(this.PlayerIdsYellow) < 1 {
-				glog.Error("[bug] 获胜队伍没有成员")
+				glog.Error("[bug] 黄色获胜队伍没有成员")
 			}
 			this.Players[this.PlayerIdsYellow[0]].WinGame()
 		}
 	}
 
+	m := usercmd.GameEnergyS2CMsg{
+		Color:  this.MaxCellColor,
+		Status: tmpStatue,
+	}
+	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameEnergy), &m)
+	tmpPlayer.room.BroadCastMsg(d, f)
 }
 
 func whichCell(px float32, py float32, pz float32) (uint32, uint32, bool) {
