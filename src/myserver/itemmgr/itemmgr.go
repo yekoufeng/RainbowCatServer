@@ -52,7 +52,9 @@ func (this *ItemMgr) CreateItem() {
 		return
 	}
 	//道具种类随机
-	itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
+	//TODO 方便测试 全是染色道具
+	//itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
+	itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_dyeing)
 	this.Scene.SetItemOnCell(itemRow, itemCol)
 	//广播道具生成信息
 	m := usercmd.CreateItemsS2CMsg{

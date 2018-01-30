@@ -15,4 +15,7 @@ const (
 	ItemLiveTime   = 10 //道具刷新时间
 	ItemCreateTime = 10 //道具开始生成
 	AllItemsNum    = 2  //道具种类个数
+
+	DyeingRange = 4 //染色道具范围大小
+	DyeingTime  = 8 //染色持续时间
 )

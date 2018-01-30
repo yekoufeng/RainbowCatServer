@@ -21,6 +21,8 @@ type ScenePlayer struct {
 	Color                   usercmd.ColorType  //玩家颜色
 	nowcellnum              uint32             //当前所拥有的格数
 	items                   []usercmd.ItemType //玩家当前拥有的道具
+
+	isDyeing usercmd.ColorType //是否被染色  没有就是origin
 }
 
 func NewScenePlayer(id uint32, rm interfaces.IRoom) *ScenePlayer {
@@ -35,6 +37,7 @@ func NewScenePlayer(id uint32, rm interfaces.IRoom) *ScenePlayer {
 		Color:      usercmd.ColorType_origin,
 		nowcellnum: 0,
 		PlayerId:   0,
+		isDyeing:   usercmd.ColorType_origin,
 	}
 	tmp.Init(tmp)
 	return tmp
@@ -67,6 +70,31 @@ func (this *ScenePlayer) GetPosition() (float32, float32, float32) {
 	return this.posX, this.posY, this.posZ
 }
 
+func (this *ScenePlayer) TurnDyeing(color usercmd.ColorType, pId uint32) {
+	//染色
+	glog.Error("被染色成", color)
+	this.isDyeing = color
+	m := usercmd.DyeingS2CMsg{
+		PassiveId: this.PlayerId,
+		ActiveId:  pId,
+		Color:     color,
+	}
+	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_DyeingCmd), &m)
+	this.room.BroadCastMsg(d, f)
+}
+
+func (this *ScenePlayer) TurnNoDyeing() {
+	//解除染色
+	glog.Error("解除染色", this.isDyeing)
+	this.isDyeing = usercmd.ColorType_origin
+	m := usercmd.DisDyeingS2CMsg{
+		PassiveId: this.PlayerId,
+		Color:     this.Color,
+	}
+	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_DisDyeingCmd), &m)
+	this.room.BroadCastMsg(d, f)
+}
+
 func (this *ScenePlayer) HandleMove(px float32, py float32, pz float32) {
 	this.SetPosition(px, py, pz)
 	this.handleMoveColor()
@@ -85,25 +113,32 @@ func (this *ScenePlayer) handleMoveColor() {
 	//获得当前坐标所在格子，判断是否进入下一个格子
 	tmprow, tmpcol, ok := whichCell(this.posX, this.posY, this.posZ)
 	if !ok {
-		glog.Error("坐标有问题bug")
+		//glog.Error("坐标有问题bug")
 		return
 	}
 	if tmprow != this.nowrow || tmpcol != this.nowcol {
 		//进入新的格子
+		nowColorTmp := this.Color
+		//增加染色判断
+		if this.isDyeing != usercmd.ColorType_origin {
+			nowColorTmp = this.isDyeing
+		}
 		this.room.MoveFromToCell(this.nowrow, this.nowcol, tmprow, tmpcol, this.PlayerId)
 		this.nowrow = tmprow
 		this.nowcol = tmpcol
 		tmpLastColor := this.room.GetCellColor(tmprow, tmpcol)
-		if tmpLastColor == this.Color {
+		if tmpLastColor == nowColorTmp {
 			//同队伍颜色，无需再发
 			return
 		}
 		//玩家当前自己占领格子加一
-		this.nowcellnum++
-		this.room.SetCellColor(tmprow, tmpcol, this.Color)
-		glog.Error("变色", this.Color, " 该位置所属格子为 row = ", tmprow, " col = ", tmpcol)
+		if this.Color == nowColorTmp {
+			this.nowcellnum++
+		}
+		this.room.SetCellColor(tmprow, tmpcol, nowColorTmp)
+		//glog.Error("变色", nowColorTmp, " 该位置所属格子为 row = ", tmprow, " col = ", tmpcol)
 		m := usercmd.ChangeColorS2CMsg{
-			Color: this.Color,
+			Color: nowColorTmp,
 			Row:   tmprow,
 			Col:   tmpcol,
 		}
@@ -124,6 +159,19 @@ func (this *ScenePlayer) checkItemOk(itype usercmd.ItemType) bool {
 	return false
 }
 
+//去除道具
+func (this *ScenePlayer) RemoveItem(itype usercmd.ItemType) {
+	tmp := -1
+	for i, typeTmp := range this.items {
+		if typeTmp == itype {
+			tmp = i
+		}
+	}
+	if tmp != -1 {
+		this.items = append(this.items[:tmp], this.items[tmp+1:]...)
+	}
+}
+
 func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 	//玩家使用道具
 	//安全检查 玩家是否有该道具
@@ -137,6 +185,7 @@ func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 	case usercmd.ItemType_dyeing:
 		//染色道具
 		this.handleItemDyeing()
+		this.RemoveItem(itype)
 	case usercmd.ItemType_unknown:
 		//未知道具
 		glog.Error("[bug]未知道具")
@@ -147,10 +196,14 @@ func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 
 func (this *ScenePlayer) handleItemVirus() {
 	//发动病毒道具
+	//TODO
 }
 
 func (this *ScenePlayer) handleItemDyeing() {
 	//发动染色道具
+	//检查以自己为中心的正方形区域的所有格子  考虑一下极端边界条件！
+	//换个思路，遍历所有玩家！
+	this.room.DyeingFun(this.nowrow, this.nowcol, this.Color, this.PlayerId)
 }
 
 func (this *ScenePlayer) GetItem(itype usercmd.ItemType) {

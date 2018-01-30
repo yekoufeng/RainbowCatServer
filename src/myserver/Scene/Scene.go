@@ -9,6 +9,7 @@ import (
 	_ "myserver/interfaces"
 	"myserver/itemmgr"
 	_ "myserver/playertaskmgr"
+	"time"
 	"usercmd"
 )
 
@@ -195,7 +196,7 @@ func (this *Scene) MoveFromToCell(arow uint32, acol uint32, brow uint32, bcol ui
 	this.Cells[int(arow)][int(acol)].PlayerLeaveMe()
 	this.Cells[int(brow)][int(bcol)].PlayerOnMe()
 	//判断格子上是否有道具
-	glog.Error("玩家从", arow, " ", acol, "运动到", brow, " ", bcol)
+	//glog.Error("玩家从", arow, " ", acol, "运动到", brow, " ", bcol)
 	if this.Cells[int(brow)][int(bcol)].GetItemOnMe() {
 		//格子有道具属性变更
 		//道具管理那边也要去除道具
@@ -238,7 +239,7 @@ func whichCell(px float32, py float32, pz float32) (uint32, uint32, bool) {
 	col := math.Ceil(float64(px/consts.CellLength) - 0.5)
 	row := math.Ceil(float64(pz/consts.CellLength) - 0.5)
 	if int(row) < 0 || uint32(row) > consts.CellNum-1 || int(col) < 0 || uint32(col) > consts.CellNum-1 {
-		glog.Error("[bug] error row or col ", row, " ", col)
+		//glog.Error("[bug] error row or col ", row, " ", col)
 		return 0, 0, false
 	}
 	return uint32(row), uint32(col), true
@@ -248,4 +249,45 @@ func (this *Scene) IsInGame() bool {
 	//TODO 默认取红队来发送消息 整个逻辑架构有问题
 	tmpPlayer := this.Players[this.PlayerIdsRed[0]]
 	return tmpPlayer.room.IsInGame()
+}
+
+func (this *Scene) AbsFun(a uint32, b uint32) uint32 {
+	if a > b {
+		return a - b
+	}
+	return b - a
+}
+
+func (this *Scene) DyeingFun(row uint32, col uint32, color usercmd.ColorType, pId uint32) {
+	var num uint32 = 0
+	var arrays []*ScenePlayer
+	//判断以row col为中心 行列差之和在n范围内 染上特别的颜色
+	for _, playerTmp := range this.Players {
+		if playerTmp.PlayerId == pId {
+			//自己跳过
+			continue
+		}
+		rowDiffer := this.AbsFun(playerTmp.nowrow, row)
+		colDiffer := this.AbsFun(playerTmp.nowcol, col)
+		glog.Error("rowDiffer = ", rowDiffer)
+		glog.Error("colDiffer = ", colDiffer)
+		if rowDiffer+colDiffer < consts.DyeingRange || rowDiffer+colDiffer == consts.DyeingRange {
+			playerTmp.TurnDyeing(color, pId)
+			num++
+			arrays = append(arrays, playerTmp)
+		}
+	}
+	glog.Error("染色道具发动 一共", num, "个玩家受到影响")
+	timer := time.NewTimer(time.Second * consts.DyeingTime)
+	go func() {
+		for true {
+			<-timer.C
+			//染色状态结束
+			//广播客户端  并且 将玩家 player属性修改
+			for _, pTmp := range arrays {
+				pTmp.TurnNoDyeing()
+			}
+			return
+		}
+	}()
 }
