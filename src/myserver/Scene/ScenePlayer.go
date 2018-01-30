@@ -16,10 +16,11 @@ type ScenePlayer struct {
 	posX                    float32
 	posY                    float32
 	posZ                    float32
-	nowrow                  uint32            //当前所在格子行
-	nowcol                  uint32            //当前所在格子列
-	Color                   usercmd.ColorType //玩家颜色
-	nowcellnum              uint32            //当前所拥有的格数
+	nowrow                  uint32             //当前所在格子行
+	nowcol                  uint32             //当前所在格子列
+	Color                   usercmd.ColorType  //玩家颜色
+	nowcellnum              uint32             //当前所拥有的格数
+	items                   []usercmd.ItemType //玩家当前拥有的道具
 }
 
 func NewScenePlayer(id uint32, rm interfaces.IRoom) *ScenePlayer {
@@ -112,8 +113,55 @@ func (this *ScenePlayer) handleMoveColor() {
 	}
 }
 
+//检查道具是否存在
+func (this *ScenePlayer) checkItemOk(itype usercmd.ItemType) bool {
+	for _, typeTmp := range this.items {
+		if typeTmp == itype {
+			return true
+		}
+	}
+	glog.Error("[bug]玩家", this.PlayerId, " 没有该道具", itype)
+	return false
+}
+
+func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
+	//玩家使用道具
+	//安全检查 玩家是否有该道具
+	if !this.checkItemOk(itype) {
+		return
+	}
+	switch itype {
+	case usercmd.ItemType_virus:
+		//病毒道具
+		this.handleItemVirus()
+	case usercmd.ItemType_dyeing:
+		//染色道具
+		this.handleItemDyeing()
+	case usercmd.ItemType_unknown:
+		//未知道具
+		glog.Error("[bug]未知道具")
+	default:
+		glog.Error("[bug] 不明itemtype")
+	}
+}
+
+func (this *ScenePlayer) handleItemVirus() {
+	//发动病毒道具
+}
+
+func (this *ScenePlayer) handleItemDyeing() {
+	//发动染色道具
+}
+
 func (this *ScenePlayer) GetItem(itype usercmd.ItemType) {
-	//TODO 玩家获得道具
+	//玩家获得道具
+	this.items = append(this.items, itype)
+
+	m := usercmd.GetItemS2CMsg{
+		Item: itype,
+	}
+	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_PlayerGetItem), &m)
+	this.Sess.AsyncSend(d, f)
 }
 
 func (this *ScenePlayer) WinGame() {

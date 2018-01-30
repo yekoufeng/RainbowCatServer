@@ -14,4 +14,5 @@ const (
 	ItemNumOneTime = 10 //一次生成多少个道具
 	ItemLiveTime   = 10 //道具刷新时间
 	ItemCreateTime = 10 //道具开始生成
+	AllItemsNum    = 2  //道具种类个数
 )

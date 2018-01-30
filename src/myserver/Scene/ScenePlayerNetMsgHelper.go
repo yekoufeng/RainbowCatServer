@@ -22,11 +22,21 @@ func (this *ScenePlayerNetMsgHelper) Init(selfPlayer *ScenePlayer) {
 //注册网络消息
 func (this *ScenePlayerNetMsgHelper) RegCmds() {
 	this.msgHandlerMap.RegisterHandler(usercmd.DemoTypeCmd_MoveReq, this.OnNetMove)
+	this.msgHandlerMap.RegisterHandler(usercmd.DemoTypeCmd_PlayerUseItem, this.OnUseItem)
 }
 
 //收到玩家消息
 func (this *ScenePlayerNetMsgHelper) OnRecvPlayerCmd(cmd usercmd.DemoTypeCmd, data []byte, flag byte) {
 	this.msgHandlerMap.Call(cmd, data, flag)
+}
+
+func (this *ScenePlayerNetMsgHelper) OnUseItem(data []byte, flag byte) {
+	op, ok := common.DecodeCmd(data, flag, &usercmd.UseItemC2SMsg{}).(*usercmd.UseItemC2SMsg)
+	if !ok {
+		glog.Error("DecodeCmd error : OnUseItem")
+		return
+	}
+	this.selfPlayer.handleUseItem(op.GetItem())
 }
 
 func (this *ScenePlayerNetMsgHelper) OnNetMove(data []byte, flag byte) {

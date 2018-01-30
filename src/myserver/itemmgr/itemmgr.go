@@ -7,7 +7,7 @@ import (
 	"myserver/consts"
 	"myserver/interfaces"
 	"myserver/item"
-	_ "time"
+	"time"
 	"usercmd"
 )
 
@@ -19,22 +19,28 @@ type ItemMgr struct {
 func (this *ItemMgr) StartLoop() {
 	//道具循环开始入口
 	glog.Error("[start] Item loop")
-	//timer := time.NewTicker(time.Second * consts.ItemLiveTime)
+	timer := time.NewTicker(time.Second * consts.ItemLiveTime)
 	for n := 0; n < consts.ItemNumOneTime; n++ {
 		this.CreateItem()
 	}
 	glog.Error("当前场景道具总数: ", len(this.items))
-	//	go func() {
-	//		for true {
-	//			<-timer.C
-	//			glog.Error("道具刷新")
-	//			if !this.Scene.IsInGame() {
-	//				timer.Stop()
-	//				glog.Error("道具管理结束loop")
-	//			}
-	//			this.RefreshItem()
-	//		}
-	//	}()
+	go func() {
+		for true {
+			<-timer.C
+			glog.Error("道具刷新")
+			if !this.Scene.IsInGame() {
+				timer.Stop()
+				glog.Error("道具管理结束loop")
+			}
+			this.RefreshItem()
+		}
+	}()
+}
+
+func (this *ItemMgr) RandItemtype() usercmd.ItemType {
+	//随机一个数 在 1-n范围内  n = 道具个数
+	//先取 0 - n-1  再加1
+	return usercmd.ItemType(rand.Int()%consts.AllItemsNum + 1)
 }
 
 func (this *ItemMgr) CreateItem() {
@@ -45,7 +51,8 @@ func (this *ItemMgr) CreateItem() {
 		this.CreateItem()
 		return
 	}
-	itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_unknown)
+	//道具种类随机
+	itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
 	this.Scene.SetItemOnCell(itemRow, itemCol)
 	//广播道具生成信息
 	m := usercmd.CreateItemsS2CMsg{
