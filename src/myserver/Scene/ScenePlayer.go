@@ -3,6 +3,7 @@ package scene
 import (
 	"base/glog"
 	"common"
+	"myserver/consts"
 	"myserver/interfaces"
 	"myserver/playertaskmgr"
 	"usercmd"
@@ -23,6 +24,7 @@ type ScenePlayer struct {
 	items                   []usercmd.ItemType //玩家当前拥有的道具
 
 	isDyeing usercmd.ColorType //是否被染色  没有就是origin
+	VirusNum uint32            //病毒陷阱数目
 }
 
 func NewScenePlayer(id uint32, rm interfaces.IRoom) *ScenePlayer {
@@ -118,15 +120,31 @@ func (this *ScenePlayer) handleMoveColor() {
 	}
 	if tmprow != this.nowrow || tmpcol != this.nowcol {
 		//进入新的格子
+		if this.VirusNum != 0 {
+			//玩家拥有病毒陷阱
+			this.room.SetCellVirus(this.nowrow, this.nowcol, this.PlayerId)
+			this.VirusNum--
+		}
 		nowColorTmp := this.Color
 		//增加染色判断
 		if this.isDyeing != usercmd.ColorType_origin {
 			nowColorTmp = this.isDyeing
 		}
-		this.room.MoveFromToCell(this.nowrow, this.nowcol, tmprow, tmpcol, this.PlayerId)
+		if this.room.IsCellVirus(tmprow, tmpcol) {
+			glog.Error("病毒陷阱触发")
+			//格子上有病毒陷阱 玩家禁锢
+			m := usercmd.PlayerImprisonS2CMsg{
+				PlayerId: this.PlayerId,
+				Time:     consts.ImprisonTime,
+			}
+			d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_PlayerImprison), &m)
+			this.room.BroadCastMsg(d, f)
+		}
+		this.room.MoveFromToCell(this.nowrow, this.nowcol, tmprow, tmpcol, this.PlayerId, uint32(len(this.items)))
 		this.nowrow = tmprow
 		this.nowcol = tmpcol
 		tmpLastColor := this.room.GetCellColor(tmprow, tmpcol)
+
 		if tmpLastColor == nowColorTmp {
 			//同队伍颜色，无需再发
 			return
@@ -185,7 +203,6 @@ func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 	case usercmd.ItemType_dyeing:
 		//染色道具
 		this.handleItemDyeing()
-		this.RemoveItem(itype)
 	case usercmd.ItemType_unknown:
 		//未知道具
 		glog.Error("[bug]未知道具")
@@ -196,20 +213,22 @@ func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 
 func (this *ScenePlayer) handleItemVirus() {
 	//发动病毒道具
-	//TODO
+	this.RemoveItem(usercmd.ItemType_virus)
+	this.VirusNum = consts.VirusCellNum
 }
 
 func (this *ScenePlayer) handleItemDyeing() {
 	//发动染色道具
 	//检查以自己为中心的正方形区域的所有格子  考虑一下极端边界条件！
 	//换个思路，遍历所有玩家！
+	this.RemoveItem(usercmd.ItemType_dyeing)
 	this.room.DyeingFun(this.nowrow, this.nowcol, this.Color, this.PlayerId)
 }
 
 func (this *ScenePlayer) GetItem(itype usercmd.ItemType) {
 	//玩家获得道具
 	this.items = append(this.items, itype)
-
+	glog.Error("获得道具", itype)
 	m := usercmd.GetItemS2CMsg{
 		Item: itype,
 	}

@@ -10,6 +10,7 @@ type Cell struct {
 	col          uint32            //格子所在列
 	isPlayerOnMe bool              //当前格子是否有玩家存在
 	isItemOnMe   bool              //当前格子是否有道具
+	isVirus      bool              //是否病毒陷阱
 }
 
 func NewCell(tmprow int, tmpcol int) Cell {
@@ -52,4 +53,16 @@ func (this *Cell) ItemLeaveMe() {
 
 func (this *Cell) GetItemOnMe() bool {
 	return this.isItemOnMe
+}
+
+func (this *Cell) SetVirus() {
+	this.isVirus = true
+}
+
+func (this *Cell) RemoveVirus() {
+	this.isVirus = false
+}
+
+func (this *Cell) GetVirus() bool {
+	return this.isVirus
 }

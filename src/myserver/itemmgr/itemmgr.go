@@ -32,7 +32,7 @@ func (this *ItemMgr) StartLoop() {
 				timer.Stop()
 				glog.Error("道具管理结束loop")
 			}
-			this.RefreshItem()
+			//this.RefreshItem()
 		}
 	}()
 }

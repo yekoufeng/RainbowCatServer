@@ -192,15 +192,20 @@ func (this *Scene) AddEnergyInScene() {
 }
 
 //从 a 格子 移动到 b 格子  对格子isPlayerOnMe参数修改
-func (this *Scene) MoveFromToCell(arow uint32, acol uint32, brow uint32, bcol uint32, pid uint32) {
+func (this *Scene) MoveFromToCell(arow uint32, acol uint32, brow uint32, bcol uint32, pid uint32, itemNum uint32) {
 	this.Cells[int(arow)][int(acol)].PlayerLeaveMe()
 	this.Cells[int(brow)][int(bcol)].PlayerOnMe()
 	//判断格子上是否有道具
 	//glog.Error("玩家从", arow, " ", acol, "运动到", brow, " ", bcol)
+	if itemNum >= consts.MaxItemNum {
+		//玩家道具数量达到上限
+		//glog.Error("玩家道具包已满")
+		return
+	}
 	if this.Cells[int(brow)][int(bcol)].GetItemOnMe() {
 		//格子有道具属性变更
 		//道具管理那边也要去除道具
-		glog.Error("道具被玩家捡了 row = ", brow, " col = ", bcol)
+		//glog.Error("道具被玩家捡了 row = ", brow, " col = ", bcol)
 		this.Cells[int(brow)][int(bcol)].ItemLeaveMe()
 		this.ItemMgr.DeleteOneItem(brow, bcol)
 		this.GetItemToPlayer(pid, this.ItemMgr.GetItemByRowCol(brow, bcol))
@@ -251,6 +256,39 @@ func (this *Scene) IsInGame() bool {
 	return tmpPlayer.room.IsInGame()
 }
 
+func (this *Scene) SetCellVirus(row uint32, col uint32, pId uint32) {
+	this.Cells[int(row)][int(col)].SetVirus()
+	//广播格子病毒陷阱
+	m := usercmd.VirusCreateS2CMsg{
+		PlayerId: pId,
+		Row:      row,
+		Col:      col,
+	}
+	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_VirusCreate), &m)
+	//TODO 默认取红队来发送消息 整个逻辑架构有问题
+	tmpPlayer := this.Players[this.PlayerIdsRed[0]]
+	tmpPlayer.room.BroadCastMsg(d, f)
+}
+
+func (this *Scene) IsCellVirus(row uint32, col uint32) bool {
+	//判断格子如果有病毒陷阱，就返回true并且移除病毒陷阱
+	tmp := this.Cells[int(row)][int(col)]
+	if tmp.GetVirus() {
+		glog.Error("移除病毒陷阱")
+		tmp.RemoveVirus()
+		m := usercmd.VirusDestroyS2CMsg{
+			Row: row,
+			Col: col,
+		}
+		d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_VirusDestroy), &m)
+		//TODO 默认取红队来发送消息 整个逻辑架构有问题
+		tmpPlayer := this.Players[this.PlayerIdsRed[0]]
+		tmpPlayer.room.BroadCastMsg(d, f)
+		return true
+	}
+	return false
+}
+
 func (this *Scene) AbsFun(a uint32, b uint32) uint32 {
 	if a > b {
 		return a - b
@@ -277,7 +315,7 @@ func (this *Scene) DyeingFun(row uint32, col uint32, color usercmd.ColorType, pI
 			arrays = append(arrays, playerTmp)
 		}
 	}
-	glog.Error("染色道具发动 一共", num, "个玩家受到影响")
+	//glog.Error("染色道具发动 一共", num, "个玩家受到影响")
 	timer := time.NewTimer(time.Second * consts.DyeingTime)
 	go func() {
 		for true {

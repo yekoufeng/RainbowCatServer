@@ -16,6 +16,12 @@ const (
 	ItemCreateTime = 10 //道具开始生成
 	AllItemsNum    = 2  //道具种类个数
 
+	MaxItemNum = 2 //一个玩家最大道具数量
+
 	DyeingRange = 4 //染色道具范围大小
 	DyeingTime  = 8 //染色持续时间
+
+	VirusCellNum = 5 //病毒陷阱数目
+
+	ImprisonTime = 2 //禁锢时间2秒
 )
