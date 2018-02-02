@@ -32,7 +32,7 @@ func (this *ItemMgr) StartLoop() {
 				timer.Stop()
 				glog.Error("道具管理结束loop")
 			}
-			//this.RefreshItem()
+			this.RefreshItem()
 		}
 	}()
 }
@@ -52,9 +52,8 @@ func (this *ItemMgr) CreateItem() {
 		return
 	}
 	//道具种类随机
-	//TODO 方便测试 全是染色道具
-	//itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
-	itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_virus)
+	itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
+	//itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_virus)
 	this.Scene.SetItemOnCell(itemRow, itemCol)
 	//广播道具生成信息
 	m := usercmd.CreateItemsS2CMsg{

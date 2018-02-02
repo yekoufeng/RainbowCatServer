@@ -1,7 +1,7 @@
 package item
 
 import (
-	"base/glog"
+	_ "base/glog"
 	"usercmd"
 )
 
@@ -17,6 +17,6 @@ func NewItem(r uint32, c uint32, itype usercmd.ItemType) *Item {
 		Col:      c,
 		ItemType: itype,
 	}
-	glog.Error("新道具生成 row = ", r, " col = ", c)
+	//glog.Error("新道具生成 row = ", r, " col = ", c)
 	return &item
 }

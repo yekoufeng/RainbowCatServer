@@ -53,18 +53,6 @@ func (this Room) PostPlayerCmd(playerID uint32, cmd usercmd.DemoTypeCmd,
 	this.chan_PlayerCmd <- playerCmd
 }
 
-func (this *Room) aStart() {
-	this.startTime = time.Now().Unix()
-	glog.Error("游戏开始 房间号 roomId = ", this.roomId, "当前玩家人数 = ", len(this.playerIds))
-	this.isInGame = true
-	this.InitPlayerPosition()
-	m := usercmd.GameStartS2CMsg{
-		Edgenum: consts.CellNum,
-	}
-	glog.Error(m)
-}
-
-//TODO asdas
 func (this *Room) Start() {
 	this.startTime = time.Now().Unix()
 	glog.Error("游戏开始 房间号 roomId = ", this.roomId, "当前玩家人数 = ", len(this.playerIds))
@@ -73,30 +61,16 @@ func (this *Room) Start() {
 	m := usercmd.GameStartS2CMsg{
 		Edgenum: consts.CellNum,
 	}
-	pId1 := this.playerIds[0]
-	pId2 := this.playerIds[1]
-	pId3 := this.playerIds[2]
-	m.Nums = append(m.Nums, &usercmd.GameStartS2CMsgPosition{
-		PlayerId: pId1,
-		Col:      this.Players[pId1].GetCol(),
-		Row:      this.Players[pId1].GetRow(),
-		Color:    this.Players[pId1].Color,
-	})
-	m.Nums = append(m.Nums, &usercmd.GameStartS2CMsgPosition{
-		PlayerId: pId2,
-		Col:      this.Players[pId2].GetCol(),
-		Row:      this.Players[pId2].GetRow(),
-		Color:    this.Players[pId2].Color,
-	})
-	m.Nums = append(m.Nums, &usercmd.GameStartS2CMsgPosition{
-		PlayerId: pId3,
-		Col:      this.Players[pId3].GetCol(),
-		Row:      this.Players[pId3].GetRow(),
-		Color:    this.Players[pId3].Color,
-	})
-	glog.Error("第一位玩家出生格子 row col color", this.Players[pId1].GetRow(), " ", this.Players[pId1].GetCol(), " ", this.Players[pId1].Color)
-	glog.Error("第二位玩家出生格子 row col color", this.Players[pId2].GetRow(), " ", this.Players[pId2].GetCol(), " ", this.Players[pId2].Color)
-	glog.Error("第三位玩家出生格子 row col color", this.Players[pId3].GetRow(), " ", this.Players[pId3].GetCol(), " ", this.Players[pId3].Color)
+	for _, pId := range this.playerIds {
+		m.Nums = append(m.Nums, &usercmd.GameStartS2CMsgPosition{
+			PlayerId: pId,
+			Col:      this.Players[pId].GetCol(),
+			Row:      this.Players[pId].GetRow(),
+			Color:    this.Players[pId].Color,
+		})
+		glog.Error("出生位置", this.Players[pId].GetRow(), "  ", this.Players[pId].GetCol())
+	}
+
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameStart), &m)
 	//广播
 	this.BroadCastMsg(d, f)
@@ -207,7 +181,7 @@ func (this *Room) AddPlayer(id []uint32) {
 	if len(id) != consts.OneGamePlayerNum {
 		glog.Error("room 人数不匹配 error")
 	}
-	this.SceneInit()
+	this.SceneInit(this)
 	m := usercmd.SearchS2CMsg{
 		RoomId: this.roomId,
 	}

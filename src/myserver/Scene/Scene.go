@@ -4,11 +4,11 @@ import (
 	"base/glog"
 	"common"
 	"math"
+	"math/rand"
 	"myserver/cell"
 	"myserver/consts"
-	_ "myserver/interfaces"
+	"myserver/interfaces"
 	"myserver/itemmgr"
-	_ "myserver/playertaskmgr"
 	"time"
 	"usercmd"
 )
@@ -28,9 +28,10 @@ type Scene struct {
 	EnergyBlue      uint32 //蓝队能量
 	EnergyYellow    uint32 //黄队能量
 	isInGame        bool   //room通知是否还在游戏中
+	sRoom           interfaces.IRoom
 }
 
-func (this *Scene) SceneInit() {
+func (this *Scene) SceneInit(roomTmp interfaces.IRoom) {
 	glog.Error("[init] SceneInit()...")
 	this.ItemMgr.Scene = this
 	this.Players = make(map[uint32]*ScenePlayer)
@@ -50,6 +51,8 @@ func (this *Scene) SceneInit() {
 	this.CellColorNum[usercmd.ColorType_origin] = consts.CellNum * consts.CellNum
 	//默认最大颜色是原始
 	this.MaxCellColor = usercmd.ColorType_origin
+
+	this.sRoom = roomTmp
 	glog.Error("[init] SceneInit() success")
 }
 
@@ -58,27 +61,54 @@ func (this *Scene) InitPlayerPosition() {
 		glog.Error("debug 人数超出设定人数!")
 		return
 	}
-	//TODO 分配位置 分配队伍
+	//这边写死一点   3人就红黄蓝   6人就红红黄黄蓝蓝
+	var tmptmp int = 0
+	if len(this.Players) == 3 {
+		//三人的
+		tmptmp = 0
+	} else if len((this.Players)) == 6 {
+		//六人的
+		tmptmp = 1
+	} else if len((this.Players)) == 1 {
+		//nothing
+		tmptmp = 0
+	}
 	for id, p := range this.Players {
 		p.PlayerId = id
-		if len(this.PlayerIdsBlue) == 0 {
-			p.SetPosition(19.5, 10, 19.5)
-			p.SetRowCol(19, 19)
+		this.randomRowCol(p)
+		if len(this.PlayerIdsBlue) == tmptmp {
 			p.Color = usercmd.ColorType_blue
 			this.PlayerIdsBlue = append(this.PlayerIdsBlue, id)
-		} else if len(this.PlayerIdsRed) == 0 {
-			p.SetPosition(0, 10, 0)
-			p.SetRowCol(0, 0)
+		} else if len(this.PlayerIdsRed) == tmptmp {
 			p.Color = usercmd.ColorType_red
 			this.PlayerIdsRed = append(this.PlayerIdsRed, id)
 		} else {
-			p.SetPosition(0, 10, 0)
-			p.SetRowCol(10, 10)
 			p.Color = usercmd.ColorType_yellow
 			this.PlayerIdsYellow = append(this.PlayerIdsYellow, id)
 		}
 	}
+}
 
+func (this *Scene) randomRowCol(pTmp *ScenePlayer) {
+	var playerRow uint32 = rand.Uint32() % consts.CellNum
+	var playerCol uint32 = rand.Uint32() % consts.CellNum
+	//如果有玩家在格子上，重新随机生成
+	glog.Error("111row = ", playerRow, "  col = ", playerCol)
+	if this.IsPlayerCreatedOnCell(playerRow, playerCol) {
+		this.randomRowCol(pTmp)
+		return
+	}
+	glog.Error("222row = ", playerRow, "  col = ", playerCol)
+	pTmp.SetRowCol(playerRow, playerCol)
+}
+
+func (this *Scene) IsPlayerCreatedOnCell(row uint32, col uint32) bool {
+	for _, pTmp := range this.Players {
+		if pTmp.GetRow() == row && pTmp.GetCol() == col {
+			return true
+		}
+	}
+	return false
 }
 
 func (this *Scene) GetOnePlayerPosition(id uint32) (float32, float32, float32) {
@@ -263,9 +293,7 @@ func (this *Scene) IsPlayerOnCell(row uint32, col uint32) bool {
 }
 
 func (this *Scene) BroadCastMsg(data []byte, flag byte) {
-	//TODO 默认取红队来发送消息 整个逻辑架构有问题
-	tmpPlayer := this.Players[this.PlayerIdsRed[0]]
-	tmpPlayer.room.BroadCastMsg(data, flag)
+	this.sRoom.BroadCastMsg(data, flag)
 }
 
 func whichCell(px float32, py float32, pz float32) (uint32, uint32, bool) {
@@ -280,9 +308,7 @@ func whichCell(px float32, py float32, pz float32) (uint32, uint32, bool) {
 }
 
 func (this *Scene) IsInGame() bool {
-	//TODO 默认取红队来发送消息 整个逻辑架构有问题
-	tmpPlayer := this.Players[this.PlayerIdsRed[0]]
-	return tmpPlayer.room.IsInGame()
+	return this.sRoom.IsInGame()
 }
 
 func (this *Scene) SetCellVirus(row uint32, col uint32, pId uint32) {
@@ -294,9 +320,8 @@ func (this *Scene) SetCellVirus(row uint32, col uint32, pId uint32) {
 		Col:      col,
 	}
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_VirusCreate), &m)
-	//TODO 默认取红队来发送消息 整个逻辑架构有问题
-	tmpPlayer := this.Players[this.PlayerIdsRed[0]]
-	tmpPlayer.room.BroadCastMsg(d, f)
+
+	this.sRoom.BroadCastMsg(d, f)
 }
 
 func (this *Scene) IsCellVirus(row uint32, col uint32) bool {
@@ -311,9 +336,7 @@ func (this *Scene) RemoveCellVirus(row uint32, col uint32) {
 		Col: col,
 	}
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_VirusDestroy), &m)
-	//TODO 默认取红队来发送消息 整个逻辑架构有问题
-	tmpPlayer := this.Players[this.PlayerIdsRed[0]]
-	tmpPlayer.room.BroadCastMsg(d, f)
+	this.sRoom.BroadCastMsg(d, f)
 }
 
 func (this *Scene) AbsFun(a uint32, b uint32) uint32 {
