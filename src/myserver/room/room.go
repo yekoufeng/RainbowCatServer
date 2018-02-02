@@ -53,6 +53,18 @@ func (this Room) PostPlayerCmd(playerID uint32, cmd usercmd.DemoTypeCmd,
 	this.chan_PlayerCmd <- playerCmd
 }
 
+func (this *Room) aStart() {
+	this.startTime = time.Now().Unix()
+	glog.Error("游戏开始 房间号 roomId = ", this.roomId, "当前玩家人数 = ", len(this.playerIds))
+	this.isInGame = true
+	this.InitPlayerPosition()
+	m := usercmd.GameStartS2CMsg{
+		Edgenum: consts.CellNum,
+	}
+	glog.Error(m)
+}
+
+//TODO asdas
 func (this *Room) Start() {
 	this.startTime = time.Now().Unix()
 	glog.Error("游戏开始 房间号 roomId = ", this.roomId, "当前玩家人数 = ", len(this.playerIds))

@@ -225,7 +225,8 @@ func (this *Scene) MoveFromToCell(arow uint32, acol uint32, brow uint32, bcol ui
 	this.Cells[int(brow)][int(bcol)].PlayerOnMe()
 	//判断格子上是否有道具
 	//glog.Error("玩家从", arow, " ", acol, "运动到", brow, " ", bcol)
-	if itemNum >= consts.MaxItemNum {
+	//glog.Error("玩家道具个数 ", itemNum)
+	if itemNum == consts.MaxItemNum {
 		//玩家道具数量达到上限
 		//glog.Error("玩家道具包已满")
 		return
@@ -299,22 +300,20 @@ func (this *Scene) SetCellVirus(row uint32, col uint32, pId uint32) {
 }
 
 func (this *Scene) IsCellVirus(row uint32, col uint32) bool {
-	//判断格子如果有病毒陷阱，就返回true并且移除病毒陷阱
-	tmp := this.Cells[int(row)][int(col)]
-	if tmp.GetVirus() {
-		glog.Error("移除病毒陷阱")
-		tmp.RemoveVirus()
-		m := usercmd.VirusDestroyS2CMsg{
-			Row: row,
-			Col: col,
-		}
-		d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_VirusDestroy), &m)
-		//TODO 默认取红队来发送消息 整个逻辑架构有问题
-		tmpPlayer := this.Players[this.PlayerIdsRed[0]]
-		tmpPlayer.room.BroadCastMsg(d, f)
-		return true
+	//判断格子有没有病毒属性
+	return this.Cells[int(row)][int(col)].GetVirus()
+}
+
+func (this *Scene) RemoveCellVirus(row uint32, col uint32) {
+	this.Cells[int(row)][int(col)].RemoveVirus()
+	m := usercmd.VirusDestroyS2CMsg{
+		Row: row,
+		Col: col,
 	}
-	return false
+	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_VirusDestroy), &m)
+	//TODO 默认取红队来发送消息 整个逻辑架构有问题
+	tmpPlayer := this.Players[this.PlayerIdsRed[0]]
+	tmpPlayer.room.BroadCastMsg(d, f)
 }
 
 func (this *Scene) AbsFun(a uint32, b uint32) uint32 {

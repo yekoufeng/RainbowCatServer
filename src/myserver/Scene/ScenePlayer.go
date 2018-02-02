@@ -135,7 +135,6 @@ func (this *ScenePlayer) handleMoveColor() {
 			nowColorTmp = this.isDyeing
 		}
 		if this.room.IsCellVirus(tmprow, tmpcol) {
-			glog.Error("病毒陷阱触发")
 			//格子上有病毒陷阱 玩家禁锢
 			m := usercmd.PlayerImprisonS2CMsg{
 				PlayerId: this.PlayerId,
@@ -143,6 +142,7 @@ func (this *ScenePlayer) handleMoveColor() {
 			}
 			d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_PlayerImprison), &m)
 			this.room.BroadCastMsg(d, f)
+			this.room.RemoveCellVirus(tmprow, tmpcol)
 		}
 		this.room.MoveFromToCell(this.nowrow, this.nowcol, tmprow, tmpcol, this.PlayerId, uint32(len(this.items)))
 		this.nowrow = tmprow

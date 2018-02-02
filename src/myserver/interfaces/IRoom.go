@@ -19,4 +19,5 @@ type IRoom interface {
 	DyeingFun(row uint32, col uint32, color usercmd.ColorType, pId uint32)
 	SetCellVirus(row uint32, col uint32, pId uint32)
 	IsCellVirus(row uint32, col uint32) bool
+	RemoveCellVirus(row uint32, col uint32)
 }
