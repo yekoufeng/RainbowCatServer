@@ -89,6 +89,34 @@ func (this *Scene) GetOneCellByRowCol(tmprow uint32, tmpcol uint32) cell.Cell {
 	return this.Cells[int(tmprow)][int(tmpcol)]
 }
 
+func (this *Scene) GetMvpId(color usercmd.ColorType) uint32 {
+	var tmp []uint32
+	switch color {
+	case usercmd.ColorType_red:
+		tmp = this.PlayerIdsRed
+	case usercmd.ColorType_blue:
+		tmp = this.PlayerIdsBlue
+	case usercmd.ColorType_yellow:
+		tmp = this.PlayerIdsYellow
+	}
+	if tmp == nil {
+		glog.Error("[bug] Mvp color")
+	}
+	var MvpId uint32 = 0
+	var MvpNum uint32 = 0
+	for _, pId := range tmp {
+		if this.Players[pId].GetOnePlayerCellNum() > MvpNum {
+			MvpId = pId
+			MvpNum = this.Players[pId].GetOnePlayerCellNum()
+		}
+	}
+	if MvpId == 0 {
+		glog.Error("[bug] mvp id")
+		return 0
+	}
+	return MvpId
+}
+
 func (this *Scene) SetCellColor(row uint32, col uint32, color usercmd.ColorType) {
 	//玩家所属队伍颜色格子加一
 	//被占领格子如果是有人占领的，那么那个人队伍颜色数目减一

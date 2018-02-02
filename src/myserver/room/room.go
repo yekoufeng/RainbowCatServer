@@ -167,19 +167,28 @@ func (this *Room) HandleGameOver(color usercmd.ColorType) {
 	}
 	this.isInGame = false
 	m := usercmd.GameEndS2CMsg{
-		Color: color,
-		Num:   this.CellColorNum[color],
+		WinColor: color,
 	}
+	//TODO name的获取如果玩家在游戏中就断线了，可能导致这边异常
+	for _, pId := range this.playerIds {
+		m.Nums = append(m.Nums, &usercmd.GameEndS2CMsgPlayerMsg{
+			PlayerId: pId,
+			Name:     playertaskmgr.GetMe().GetPlayerTask(pId).GetName(),
+			Cellnum:  this.Players[pId].GetOnePlayerCellNum(),
+			Color:    this.Players[pId].Color,
+		})
+	}
+
 	if color == usercmd.ColorType_origin {
 		//没有一个队伍达到100%
 		//根据max来判断谁获胜
-		m.Color = this.MaxCellColor
-		m.Num = this.CellColorNum[this.MaxCellColor]
+		m.WinColor = this.MaxCellColor
 	}
+	m.Mvpid = this.GetMvpId(m.WinColor)
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameEnd), &m)
 	//广播
 	this.BroadCastMsg(d, f)
-	glog.Error("获胜队伍颜色是", this.MaxCellColor, " num=", this.CellColorNum[this.MaxCellColor])
+	glog.Error("获胜队伍颜色是", this.MaxCellColor)
 }
 
 func (this *Room) AddPlayer(id []uint32) {

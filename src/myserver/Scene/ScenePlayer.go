@@ -49,6 +49,10 @@ func (this *ScenePlayer) SendMsg(data []byte, flag byte) {
 	this.Sess.AsyncSend(data, flag)
 }
 
+func (this *ScenePlayer) GetOnePlayerCellNum() uint32 {
+	return this.nowcellnum
+}
+
 func (this *ScenePlayer) SetPosition(px float32, py float32, pz float32) {
 	this.posX = px
 	this.posY = py
@@ -187,6 +191,7 @@ func (this *ScenePlayer) RemoveItem(itype usercmd.ItemType) {
 	}
 	if tmp != -1 {
 		this.items = append(this.items[:tmp], this.items[tmp+1:]...)
+		glog.Error("使用道具   去除道具成功")
 	}
 }
 
