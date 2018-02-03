@@ -114,7 +114,7 @@ func whichCellInScenePlayer(px float32, py float32, pz float32) (uint32, uint32,
 	return uint32(row), uint32(col), true
 }
 
-func (this *ScenePlayer) HandleMove(px float32, py float32, pz float32) {
+func (this *ScenePlayer) HandleMove(px float32, py float32, pz float32, mType usercmd.MoveType) {
 	this.SetPosition(px, py, pz)
 	this.handleMoveColor()
 	rowTmp, colTmp, ok := whichCellInScenePlayer(px, py, pz)
@@ -129,6 +129,7 @@ func (this *ScenePlayer) HandleMove(px float32, py float32, pz float32) {
 		PosZ:     this.posZ,
 		Row:      rowTmp,
 		Col:      colTmp,
+		MType:    mType,
 	}
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_MoveRes), &m)
 	this.room.BroadCastMsg(d, f)

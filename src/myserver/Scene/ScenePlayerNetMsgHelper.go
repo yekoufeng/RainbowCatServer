@@ -45,5 +45,5 @@ func (this *ScenePlayerNetMsgHelper) OnNetMove(data []byte, flag byte) {
 		glog.Error("DecodeCmd error : OnNetMove")
 		return
 	}
-	this.selfPlayer.HandleMove(op.GetPosX(), op.GetPosY(), op.GetPosZ())
+	this.selfPlayer.HandleMove(op.GetPosX(), op.GetPosY(), op.GetPosZ(), op.GetMType())
 }
