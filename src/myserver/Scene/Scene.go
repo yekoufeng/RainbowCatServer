@@ -76,12 +76,12 @@ func (this *Scene) InitPlayerPosition() {
 	for id, p := range this.Players {
 		p.PlayerId = id
 		this.randomRowCol(p)
-		if len(this.PlayerIdsBlue) == tmptmp {
-			p.Color = usercmd.ColorType_blue
-			this.PlayerIdsBlue = append(this.PlayerIdsBlue, id)
-		} else if len(this.PlayerIdsRed) == tmptmp {
+		if len(this.PlayerIdsRed) == tmptmp {
 			p.Color = usercmd.ColorType_red
 			this.PlayerIdsRed = append(this.PlayerIdsRed, id)
+		} else if len(this.PlayerIdsBlue) == tmptmp {
+			p.Color = usercmd.ColorType_blue
+			this.PlayerIdsBlue = append(this.PlayerIdsBlue, id)
 		} else {
 			p.Color = usercmd.ColorType_yellow
 			this.PlayerIdsYellow = append(this.PlayerIdsYellow, id)
@@ -242,11 +242,28 @@ func (this *Scene) AddEnergyInScene() {
 	}
 
 	m := usercmd.GameEnergyS2CMsg{
-		Color:  this.MaxCellColor,
-		Status: tmpStatue,
+		Color:     this.MaxCellColor,
+		Status:    tmpStatue,
+		LastColor: this.GetLastEnergyColor(),
 	}
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameEnergy), &m)
 	tmpPlayer.room.BroadCastMsg(d, f)
+}
+
+//获取最后一名颜色队伍
+//都是后来新要求的 很烦！
+func (this *Scene) GetLastEnergyColor() usercmd.ColorType {
+	tmpColor := usercmd.ColorType_red
+	tmpEnergy := this.EnergyRed
+	if this.EnergyBlue > tmpEnergy {
+		tmpColor = usercmd.ColorType_blue
+		tmpEnergy = this.EnergyBlue
+	}
+	if this.EnergyYellow > tmpEnergy {
+		tmpColor = usercmd.ColorType_yellow
+		tmpEnergy = this.EnergyYellow
+	}
+	return tmpColor
 }
 
 //从 a 格子 移动到 b 格子  对格子isPlayerOnMe参数修改
