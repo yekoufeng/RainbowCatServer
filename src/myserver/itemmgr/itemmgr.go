@@ -23,14 +23,14 @@ func (this *ItemMgr) StartLoop() {
 	for n := 0; n < consts.ItemNumOneTime; n++ {
 		this.CreateItem()
 	}
-	glog.Error("当前场景道具总数: ", len(this.items))
+	//glog.Error("当前场景道具总数: ", len(this.items))
 	go func() {
 		for true {
 			<-timer.C
-			glog.Error("道具刷新")
+			//glog.Error("道具刷新")
 			if !this.Scene.IsInGame() {
 				timer.Stop()
-				glog.Error("道具管理结束loop")
+				//glog.Error("道具管理结束loop")
 			}
 			this.RefreshItem()
 		}
@@ -52,8 +52,8 @@ func (this *ItemMgr) CreateItem() {
 		return
 	}
 	//道具种类随机
-	itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
-	//itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_virus)
+	//itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
+	itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_dizzy)
 	this.Scene.SetItemOnCell(itemRow, itemCol)
 	//广播道具生成信息
 	m := usercmd.CreateItemsS2CMsg{
@@ -91,7 +91,7 @@ func (this *ItemMgr) RefreshItem() {
 	for n := 0; n < consts.ItemNumOneTime; n++ {
 		this.CreateItem()
 	}
-	glog.Error("当前场景道具总数: ", len(this.items))
+	//glog.Error("当前场景道具总数: ", len(this.items))
 }
 
 func (this *ItemMgr) DeleteOneItem(row uint32, col uint32) {

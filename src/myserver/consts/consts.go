@@ -8,13 +8,13 @@ const (
 
 	CountDownTime      = 10  //充能开始时间10秒
 	EnergyRepeatedTime = 500 //0.5秒充能一次  500ms = 0.5s
-	OneGamePlayerNum   = 1   //一局游戏玩家人数
+	OneGamePlayerNum   = 2   //一局游戏玩家人数
 	TotalEnergyNum     = 100 //能量总数
 
 	ItemNumOneTime = 10 //一次生成多少个道具
 	ItemLiveTime   = 20 //道具刷新时间
 	ItemCreateTime = 10 //道具开始生成
-	AllItemsNum    = 2  //道具种类个数
+	AllItemsNum    = 3  //道具种类个数
 
 	MaxItemNum = 2 //一个玩家最大道具数量
 

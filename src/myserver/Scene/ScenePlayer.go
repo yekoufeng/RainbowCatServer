@@ -122,7 +122,6 @@ func (this *ScenePlayer) HandleMove(px float32, py float32, pz float32, mType us
 	if !ok {
 		return
 	}
-	glog.Error("row ", rowTmp, "  col = ", colTmp)
 	m := usercmd.MoveS2CMsg{
 		PlayerId: this.Sess.GetId(),
 		PosX:     this.posX,
@@ -219,6 +218,7 @@ func (this *ScenePlayer) RemoveItem(itype usercmd.ItemType) {
 func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 	//玩家使用道具
 	//安全检查 玩家是否有该道具
+	glog.Error("使用道具 ", itype)
 	if !this.checkItemOk(itype) {
 		return
 	}
@@ -255,6 +255,8 @@ func (this *ScenePlayer) handleItemDyeing() {
 }
 
 func (this *ScenePlayer) handleItemDizzy() {
+	glog.Error("使用神魂颠倒")
+	this.RemoveItem(usercmd.ItemType_dyeing)
 	this.room.DizzyFun(this.PlayerId)
 }
 
