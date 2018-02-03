@@ -363,6 +363,19 @@ func (this *Scene) AbsFun(a uint32, b uint32) uint32 {
 	return b - a
 }
 
+func (this *Scene) DizzyFun(pId uint32) {
+	for _, pTmp := range this.Players {
+		if pTmp.PlayerId != pId {
+			m := usercmd.PlayerImprisonS2CMsg{
+				PlayerId: pTmp.PlayerId,
+				Time:     consts.DizzyTime,
+			}
+			d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_PlayerDizzy), &m)
+			this.sRoom.BroadCastMsg(d, f)
+		}
+	}
+}
+
 func (this *Scene) DyeingFun(row uint32, col uint32, color usercmd.ColorType, pId uint32) {
 	var num uint32 = 0
 	var arrays []*ScenePlayer

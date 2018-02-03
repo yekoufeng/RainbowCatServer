@@ -20,4 +20,5 @@ type IRoom interface {
 	SetCellVirus(row uint32, col uint32, pId uint32)
 	IsCellVirus(row uint32, col uint32) bool
 	RemoveCellVirus(row uint32, col uint32)
+	DizzyFun(pId uint32)
 }

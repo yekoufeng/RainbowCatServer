@@ -122,6 +122,7 @@ func (this *ScenePlayer) HandleMove(px float32, py float32, pz float32, mType us
 	if !ok {
 		return
 	}
+	glog.Error("row ", rowTmp, "  col = ", colTmp)
 	m := usercmd.MoveS2CMsg{
 		PlayerId: this.Sess.GetId(),
 		PosX:     this.posX,
@@ -228,6 +229,9 @@ func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 	case usercmd.ItemType_dyeing:
 		//染色道具
 		this.handleItemDyeing()
+	case usercmd.ItemType_dizzy:
+		//神魂颠倒
+		this.handleItemDizzy()
 	case usercmd.ItemType_unknown:
 		//未知道具
 		glog.Error("[bug]未知道具")
@@ -248,6 +252,10 @@ func (this *ScenePlayer) handleItemDyeing() {
 	//换个思路，遍历所有玩家！
 	this.RemoveItem(usercmd.ItemType_dyeing)
 	this.room.DyeingFun(this.nowrow, this.nowcol, this.Color, this.PlayerId)
+}
+
+func (this *ScenePlayer) handleItemDizzy() {
+	this.room.DizzyFun(this.PlayerId)
 }
 
 func (this *ScenePlayer) GetItem(itype usercmd.ItemType) {
