@@ -71,7 +71,7 @@ func (this *Scene) InitPlayerPosition() {
 		tmptmp = 1
 	} else if len((this.Players)) == 1 {
 		//nothing
-		tmptmp = 0
+		tmptmp = 3
 	}
 	for id, p := range this.Players {
 		p.PlayerId = id

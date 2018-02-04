@@ -4,15 +4,15 @@ const (
 	IpAddress           = "192.168.214.111:8000" //ip地址
 	CellLength  float32 = 1.0                    //方块正方形边长大小
 	CellNum     uint32  = 20                     //方块正方形边长个数
-	OneGameTime         = 60                     //一分钟
+	OneGameTime         = 360000                 //一分钟
 
-	CountDownTime      = 10  //充能开始时间10秒
-	EnergyRepeatedTime = 500 //0.5秒充能一次  500ms = 0.5s
-	OneGamePlayerNum   = 2   //一局游戏玩家人数
-	TotalEnergyNum     = 100 //能量总数
+	CountDownTime      = 1000 //充能开始时间10秒
+	EnergyRepeatedTime = 500  //0.5秒充能一次  500ms = 0.5s
+	OneGamePlayerNum   = 1    //一局游戏玩家人数
+	TotalEnergyNum     = 100  //能量总数
 
 	ItemNumOneTime = 10 //一次生成多少个道具
-	ItemLiveTime   = 20 //道具刷新时间
+	ItemLiveTime   = 60 //道具刷新时间
 	ItemCreateTime = 10 //道具开始生成
 	AllItemsNum    = 3  //道具种类个数
 
