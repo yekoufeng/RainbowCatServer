@@ -3,7 +3,6 @@ package scene
 import (
 	"base/glog"
 	"common"
-	"math"
 	"myserver/consts"
 	"myserver/interfaces"
 	"myserver/playertaskmgr"
@@ -102,24 +101,13 @@ func (this *ScenePlayer) TurnNoDyeing() {
 	this.room.BroadCastMsg(d, f)
 }
 
-//后续新加的一些需求导致代码丑陋
-func whichCellInScenePlayer(px float32, py float32, pz float32) (uint32, uint32, bool) {
-	//TODO -1.0  -1.0有bug  因为是-0
-	col := math.Ceil(float64(px/consts.CellLength) - 0.5)
-	row := math.Ceil(float64(pz/consts.CellLength) - 0.5)
-	if int(row) < 0 || uint32(row) > consts.CellNum-1 || int(col) < 0 || uint32(col) > consts.CellNum-1 {
-		//glog.Error("[bug] error row or col ", row, " ", col)
-		return 0, 0, false
-	}
-	return uint32(row), uint32(col), true
-}
-
 func (this *ScenePlayer) HandleMove(px float32, py float32, pz float32, mType usercmd.MoveType) {
 	this.SetPosition(px, py, pz)
 	this.handleMoveColor()
-	rowTmp, colTmp, ok := whichCellInScenePlayer(px, py, pz)
-	//TODO 如果格子判断有问题，就是出地图了，我将不会广播消息
+	rowTmp, colTmp, ok := whichCell(px, py, pz)
+	//如果格子判断有问题，就是出地图了，我将不会广播消息
 	if !ok {
+		glog.Error("bug移动，超出地图，不广播此信息")
 		return
 	}
 	m := usercmd.MoveS2CMsg{

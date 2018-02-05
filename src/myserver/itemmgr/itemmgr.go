@@ -53,7 +53,7 @@ func (this *ItemMgr) CreateItem() {
 	}
 	//道具种类随机
 	//itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
-	itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_virus)
+	itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_dyeing)
 	this.Scene.SetItemOnCell(itemRow, itemCol)
 	//广播道具生成信息
 	m := usercmd.CreateItemsS2CMsg{

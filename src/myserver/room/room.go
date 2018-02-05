@@ -155,11 +155,17 @@ func (this *Room) HandleGameOver(color usercmd.ColorType) {
 	m := usercmd.GameEndS2CMsg{
 		WinColor: color,
 	}
-	//TODO name的获取如果玩家在游戏中就断线了，可能导致这边异常
+	//name的获取如果玩家在游戏中就断线了，可能导致这边异常
 	for _, pId := range this.playerIds {
+		playerTmp := playertaskmgr.GetMe().GetPlayerTask(pId)
+		var nameTmp string = "玩家已下线"
+		if playerTmp != nil {
+			//说明玩家没有断开连接
+			nameTmp = playerTmp.GetName()
+		}
 		m.Nums = append(m.Nums, &usercmd.GameEndS2CMsgPlayerMsg{
 			PlayerId: pId,
-			Name:     playertaskmgr.GetMe().GetPlayerTask(pId).GetName(),
+			Name:     nameTmp,
 			Cellnum:  this.Players[pId].GetOnePlayerCellNum(),
 			Color:    this.Players[pId].Color,
 		})
@@ -175,6 +181,10 @@ func (this *Room) HandleGameOver(color usercmd.ColorType) {
 	//广播
 	this.BroadCastMsg(d, f)
 	glog.Error("获胜队伍颜色是", this.MaxCellColor)
+
+	//把所有玩家踢出去房间
+	//操作sceneplayer的playtask接口
+	this.Scene.GameOverForEveryOne()
 }
 
 func (this *Room) AddPlayer(id []uint32) {

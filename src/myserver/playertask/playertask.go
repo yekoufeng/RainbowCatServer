@@ -116,3 +116,9 @@ func (this *PlayerTask) SetRoom(room interfaces.IRoom) {
 	this.isSearching = false
 	this.isInRoom = true
 }
+
+func (this *PlayerTask) LeaveRoom() {
+	this.room = nil
+	this.isSearching = false
+	this.isInRoom = false
+}

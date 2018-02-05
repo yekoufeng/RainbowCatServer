@@ -314,7 +314,6 @@ func (this *Scene) BroadCastMsg(data []byte, flag byte) {
 }
 
 func whichCell(px float32, py float32, pz float32) (uint32, uint32, bool) {
-	//TODO -1.0  -1.0有bug  因为是-0
 	col := math.Ceil(float64(px/consts.CellLength) - 0.5)
 	row := math.Ceil(float64(pz/consts.CellLength) - 0.5)
 	if int(row) < 0 || uint32(row) > consts.CellNum-1 || int(col) < 0 || uint32(col) > consts.CellNum-1 {
@@ -408,4 +407,11 @@ func (this *Scene) DyeingFun(row uint32, col uint32, color usercmd.ColorType, pI
 			return
 		}
 	}()
+}
+
+//游戏结束踢出所有玩家
+func (this *Scene) GameOverForEveryOne() {
+	for _, pTmp := range this.Players {
+		pTmp.Sess.LeaveRoom()
+	}
 }

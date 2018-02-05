@@ -56,6 +56,7 @@ func (this *PlayerTaskMgr) GetPlayerTask(id uint32) interfaces.IPlayerTask {
 	tmp, ok := this.tasks[id]
 	if !ok {
 		glog.Error("[错误] id = ", id)
+		return nil
 	}
 	return tmp
 }

@@ -9,4 +9,5 @@ type IPlayerTask interface {
 	GetId() uint32
 	GetName() string
 	SetRoom(room IRoom)
+	LeaveRoom()
 }
