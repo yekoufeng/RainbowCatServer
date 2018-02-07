@@ -2,10 +2,13 @@ package roommgr
 
 import (
 	"base/glog"
+	"common"
 	"math/rand"
 	"myserver/consts"
+	"myserver/playertaskmgr"
 	rm "myserver/room"
 	"sync"
+	"usercmd"
 )
 
 type RoomMgr struct {
@@ -47,6 +50,17 @@ func (this *RoomMgr) AddSearchPlayer(id uint32) {
 
 	glog.Error("[匹配] 添加 [", id, "] 到匹配队列, 当前队列人数 ", waitingNums)
 	glog.Error(waitingNums, " ", consts.OneGamePlayerNum)
+
+	//匹配中信息发送
+	m := usercmd.MatchS2CMsg{
+		CurrentNum: uint32(waitingNums),
+		TotalNum:   consts.OneGamePlayerNum,
+	}
+	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_MatchRes), &m)
+	for _, pId := range this.searchPlayers {
+		playertaskmgr.GetMe().GetPlayerTask(pId).AsyncSend(d, f)
+	}
+
 	if waitingNums == consts.OneGamePlayerNum {
 		//从队列删除前两个数据
 		searchSuccessPlayerIds := this.searchPlayers[:waitingNums]

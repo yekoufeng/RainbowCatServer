@@ -4,23 +4,20 @@ import (
 	"base/glog"
 	"math"
 	"myserver/consts"
-	"time"
 )
 
 func main() {
-	//	tmprow, tmpcol := whichCell(19.4, 11, 19.4)
-	//	glog.Error("row = ", tmprow, " col = ", tmpcol)
-	var timer = time.NewTicker(time.Millisecond * 500)
+	aTmp, bTmp := getMinAndSecByLoop(179)
+	glog.Error("minute = ", aTmp)
+	glog.Error("second = ", bTmp)
+}
 
-	go func() {
-		for true {
-			<-timer.C
-			glog.Error("0.5s")
-		}
-
-	}()
-	for true {
-	}
+func getMinAndSecByLoop(loop uint32) (uint32, uint32) {
+	leftTime := consts.OneGameTime - loop
+	glog.Error("leftTime = ", leftTime)
+	aTmp := leftTime / 60
+	bTmp := leftTime % 60
+	return aTmp, bTmp
 }
 
 func whichCell(px float32, py float32, pz float32) (uint32, uint32) {

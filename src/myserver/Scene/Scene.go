@@ -65,21 +65,23 @@ func (this *Scene) InitPlayerPosition() {
 	var tmptmp int = 0
 	if len(this.Players) == 3 {
 		//三人的
-		tmptmp = 0
-	} else if len((this.Players)) == 6 {
-		//六人的
 		tmptmp = 1
-	} else if len((this.Players)) == 1 {
+	} else if len(this.Players) == 6 {
+		//六人的
+		tmptmp = 2
+	} else if len(this.Players) == 1 {
 		//nothing
 		tmptmp = 3
+	} else if len(this.Players) == 2 {
+		tmptmp = 1
 	}
 	for id, p := range this.Players {
 		p.PlayerId = id
 		this.randomRowCol(p)
-		if len(this.PlayerIdsRed) == tmptmp {
+		if len(this.PlayerIdsRed) != tmptmp {
 			p.Color = usercmd.ColorType_red
 			this.PlayerIdsRed = append(this.PlayerIdsRed, id)
-		} else if len(this.PlayerIdsBlue) == tmptmp {
+		} else if len(this.PlayerIdsBlue) != tmptmp {
 			p.Color = usercmd.ColorType_blue
 			this.PlayerIdsBlue = append(this.PlayerIdsBlue, id)
 		} else {
@@ -302,6 +304,7 @@ func (this *Scene) SetItemOnCell(row uint32, col uint32) {
 }
 
 func (this *Scene) DeleteItemOnCell(row uint32, col uint32) {
+	//glog.Error("销毁道具 row", row, " col", col)
 	this.Cells[int(row)][int(col)].ItemLeaveMe()
 }
 
@@ -386,8 +389,6 @@ func (this *Scene) DyeingFun(row uint32, col uint32, color usercmd.ColorType, pI
 		}
 		rowDiffer := this.AbsFun(playerTmp.nowrow, row)
 		colDiffer := this.AbsFun(playerTmp.nowcol, col)
-		glog.Error("rowDiffer = ", rowDiffer)
-		glog.Error("colDiffer = ", colDiffer)
 		if rowDiffer+colDiffer < consts.DyeingRange || rowDiffer+colDiffer == consts.DyeingRange {
 			playerTmp.TurnDyeing(color, pId)
 			num++

@@ -23,7 +23,7 @@ func (this *ItemMgr) StartLoop() {
 	for n := 0; n < consts.ItemNumOneTime; n++ {
 		this.CreateItem()
 	}
-	//glog.Error("当前场景道具总数: ", len(this.items))
+	glog.Error("当前场景道具总数: ", len(this.items))
 	go func() {
 		for true {
 			<-timer.C
@@ -52,8 +52,8 @@ func (this *ItemMgr) CreateItem() {
 		return
 	}
 	//道具种类随机
-	//itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
-	itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_dyeing)
+	itemTmp := item.NewItem(itemRow, itemCol, this.RandItemtype())
+	//itemTmp := item.NewItem(itemRow, itemCol, usercmd.ItemType_dyeing)
 	this.Scene.SetItemOnCell(itemRow, itemCol)
 	//广播道具生成信息
 	m := usercmd.CreateItemsS2CMsg{
@@ -80,6 +80,7 @@ func (this *ItemMgr) DeleteAllItems() {
 	}
 	//清空道具切片
 	this.items = this.items[:0]
+	//glog.Error("当前场景道具总数: ", len(this.items))
 }
 
 func (this *ItemMgr) RefreshItem() {
@@ -107,14 +108,17 @@ func (this *ItemMgr) DeleteOneItem(row uint32, col uint32) {
 			}
 			d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_ItemDestroy), &m)
 			this.Scene.BroadCastMsg(d, f)
+
+			//glog.Error("当前场景道具总数: ", len(this.items))
 			return
 		}
 	}
 }
 
 func (this *ItemMgr) GetItemByRowCol(row uint32, col uint32) usercmd.ItemType {
-	for _, itemTmp := range this.items {
+	for i, itemTmp := range this.items {
 		if itemTmp.Row == row && itemTmp.Col == col {
+			this.items = append(this.items[:i], this.items[i+1:]...)
 			return itemTmp.ItemType
 		}
 	}

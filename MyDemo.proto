@@ -30,6 +30,8 @@ enum DemoTypeCmd {
 	
 	PlayerImprison = 21;//玩家禁锢
 	PlayerDizzy = 22;//玩家神魂颠倒
+	
+	MatchRes = 23;//匹配中消息
 }
 
 enum moveType{
@@ -70,6 +72,13 @@ message LoginS2CMsg{
 //客户端请求游戏匹配
 message SearchC2SMsg{
 	required uint32 playerId = 1;
+}
+
+//服务器主动推送
+//匹配中的信息
+message MatchS2CMsg{
+	required uint32 currentNum = 1;
+	required uint32 totalNum = 2;
 }
 
 //服务器通知匹配信息
@@ -139,6 +148,8 @@ message GameEnergyS2CMsg{
 //时间同步
 message SynTimeS2CMsg{
 	required uint32 tloop = 1;//游戏进行了多少秒循环
+	required uint32 minute = 2; //客户端显示的分
+	required uint32 second = 3;//客户端显示的秒
 }
 
 enum itemType{

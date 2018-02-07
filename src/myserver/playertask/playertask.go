@@ -57,7 +57,9 @@ func (this *PlayerTask) ParseMsg(data []byte, flag byte) bool {
 		this.handleSearch(data, flag)
 	//所有和房间有关的cmd放进各自用户的room里处理
 	default:
-		this.room.PostPlayerCmd(this.id, cmd, data, flag)
+		if this.isInRoom {
+			this.room.PostPlayerCmd(this.id, cmd, data, flag)
+		}
 	}
 	return true
 }

@@ -199,14 +199,14 @@ func (this *ScenePlayer) RemoveItem(itype usercmd.ItemType) {
 	}
 	if tmp != -1 {
 		this.items = append(this.items[:tmp], this.items[tmp+1:]...)
-		glog.Error("使用道具   去除道具成功")
 	}
 }
 
 func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 	//玩家使用道具
 	//安全检查 玩家是否有该道具
-	glog.Error("使用道具 ", itype)
+	//glog.Error("使用道具 ", itype)
+
 	if !this.checkItemOk(itype) {
 		return
 	}
@@ -226,12 +226,13 @@ func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 	default:
 		glog.Error("[bug] 不明itemtype")
 	}
+	//glog.Error("当前玩家物品个数为 ", len(this.items))
 }
 
 func (this *ScenePlayer) handleItemVirus() {
 	//发动病毒道具
 	this.RemoveItem(usercmd.ItemType_virus)
-	this.VirusNum = consts.VirusCellNum
+	this.VirusNum += consts.VirusCellNum
 }
 
 func (this *ScenePlayer) handleItemDyeing() {
@@ -243,15 +244,15 @@ func (this *ScenePlayer) handleItemDyeing() {
 }
 
 func (this *ScenePlayer) handleItemDizzy() {
-	glog.Error("使用神魂颠倒")
-	this.RemoveItem(usercmd.ItemType_dyeing)
+	this.RemoveItem(usercmd.ItemType_dizzy)
 	this.room.DizzyFun(this.PlayerId)
 }
 
 func (this *ScenePlayer) GetItem(itype usercmd.ItemType) {
 	//玩家获得道具
 	this.items = append(this.items, itype)
-	glog.Error("获得道具", itype)
+	//	glog.Error("获得道具", itype)
+	//	glog.Error("当前玩家物品个数为 ", len(this.items))
 	m := usercmd.GetItemS2CMsg{
 		Item: itype,
 	}

@@ -74,7 +74,17 @@ func (this *Room) Start() {
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameStart), &m)
 	//广播
 	this.BroadCastMsg(d, f)
-	go this.Loop()
+	//延迟三秒钟 为了 3 2 1 go
+	var timer = time.NewTicker(time.Second * consts.GameStartWaitTime)
+
+	go func() {
+		for true {
+			<-timer.C
+			go this.Loop()
+			break
+		}
+
+	}()
 }
 
 //主循环
@@ -125,11 +135,22 @@ func (this *Room) handleItemCreate() {
 
 //同步房间内时间 1秒一次
 func (this *Room) handleSynTime() {
+	minTmp, secTmp := getMinAndSecByLoop(this.tloop)
 	m := usercmd.SynTimeS2CMsg{
-		Tloop: this.tloop,
+		Tloop:  this.tloop,
+		Minute: minTmp,
+		Second: secTmp,
 	}
 	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_GameTime), &m)
 	this.BroadCastMsg(d, f)
+}
+
+func getMinAndSecByLoop(loop uint32) (uint32, uint32) {
+	leftTime := consts.OneGameTime - loop
+	glog.Error("leftTime = ", leftTime)
+	aTmp := leftTime / 60
+	bTmp := leftTime % 60
+	return aTmp, bTmp
 }
 
 func (this *Room) handleGameEnergy() {
@@ -151,6 +172,7 @@ func (this *Room) HandleGameOver(color usercmd.ColorType) {
 	if !this.isInGame {
 		return
 	}
+	this.Scene.DeleteAllItems()
 	this.isInGame = false
 	m := usercmd.GameEndS2CMsg{
 		WinColor: color,
