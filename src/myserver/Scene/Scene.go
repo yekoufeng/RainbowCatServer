@@ -95,12 +95,10 @@ func (this *Scene) randomRowCol(pTmp *ScenePlayer) {
 	var playerRow uint32 = rand.Uint32() % consts.CellNum
 	var playerCol uint32 = rand.Uint32() % consts.CellNum
 	//如果有玩家在格子上，重新随机生成
-	glog.Error("111row = ", playerRow, "  col = ", playerCol)
 	if this.IsPlayerCreatedOnCell(playerRow, playerCol) {
 		this.randomRowCol(pTmp)
 		return
 	}
-	glog.Error("222row = ", playerRow, "  col = ", playerCol)
 	pTmp.SetRowCol(playerRow, playerCol)
 }
 
@@ -365,17 +363,52 @@ func (this *Scene) AbsFun(a uint32, b uint32) uint32 {
 	return b - a
 }
 
-func (this *Scene) DizzyFun(pId uint32) {
-	for _, pTmp := range this.Players {
-		if pTmp.PlayerId != pId {
+func (this *Scene) DizzyFun(color usercmd.ColorType) {
+	if len(this.Players) < 3 {
+		glog.Error("[bug] 人数小于3")
+		return
+	}
+	//合并另外两个队伍颜色切片
+	var arrayTmp []uint32
+	switch color {
+	case usercmd.ColorType_red:
+		arrayTmp = append(this.PlayerIdsBlue, this.PlayerIdsYellow...)
+	case usercmd.ColorType_blue:
+		arrayTmp = append(this.PlayerIdsRed, this.PlayerIdsYellow...)
+	case usercmd.ColorType_yellow:
+		arrayTmp = append(this.PlayerIdsBlue, this.PlayerIdsRed...)
+	}
+	glog.Error("len arrayTmp =  ", len(arrayTmp))
+	//随机取值
+	var funTmp1 uint32 = rand.Uint32() % uint32(len(arrayTmp))
+	var funTmp2 uint32 = rand.Uint32() % uint32(len(arrayTmp))
+	for {
+		if funTmp2 != funTmp1 {
+			break
+		}
+		funTmp2 = rand.Uint32() % uint32(len(arrayTmp))
+	}
+	glog.Error("fun1  fun2 ", funTmp1, funTmp2)
+	for i, pTmp := range arrayTmp {
+		if uint32(i) == funTmp1 || uint32(i) == funTmp2 {
 			m := usercmd.PlayerImprisonS2CMsg{
-				PlayerId: pTmp.PlayerId,
+				PlayerId: pTmp,
 				Time:     consts.DizzyTime,
 			}
 			d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_PlayerDizzy), &m)
 			this.sRoom.BroadCastMsg(d, f)
 		}
 	}
+}
+
+func (this *Scene) SpeedUpFun(pId uint32) {
+	m := usercmd.PlayerSpeedUpS2CMsg{
+		PlayerId: pId,
+		Time:     consts.SpeedTime,
+		SpeedNum: consts.SpeedNum,
+	}
+	d, f, _ := common.EncodeGoCmd(uint16(usercmd.DemoTypeCmd_PlayerSpeedUp), &m)
+	this.sRoom.BroadCastMsg(d, f)
 }
 
 func (this *Scene) DyeingFun(row uint32, col uint32, color usercmd.ColorType, pId uint32) {

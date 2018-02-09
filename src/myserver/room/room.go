@@ -147,7 +147,6 @@ func (this *Room) handleSynTime() {
 
 func getMinAndSecByLoop(loop uint32) (uint32, uint32) {
 	leftTime := consts.OneGameTime - loop
-	glog.Error("leftTime = ", leftTime)
 	aTmp := leftTime / 60
 	bTmp := leftTime % 60
 	return aTmp, bTmp

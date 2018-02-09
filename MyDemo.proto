@@ -32,6 +32,7 @@ enum DemoTypeCmd {
 	PlayerDizzy = 22;//玩家神魂颠倒
 	
 	MatchRes = 23;//匹配中消息
+	PlayerSpeedUp = 24;//玩家加速
 }
 
 enum moveType{
@@ -157,6 +158,7 @@ enum itemType{
 	virus   = 1; //病毒道具
 	dyeing  = 2; //染色道具
 	dizzy   = 3;//神魂颠倒
+	speedup   = 4;//加速
 }
 
 //服务器主动推送
@@ -227,4 +229,12 @@ message PlayerImprisonS2CMsg{
 message PlayerDizzyS2CMsg{
 	required uint32 playerId = 1;//谁被禁锢
 	required uint32 time = 2;//反转多久
+}
+
+//服务器主动推送
+//玩家加速
+message PlayerSpeedUpS2CMsg{
+	required uint32 playerId = 1;//谁加速
+	required uint32 time = 2;//加速多久
+	required uint32 speedNum = 3;//加速速率  发一个 150  表示  原本速度 * 150/100
 }

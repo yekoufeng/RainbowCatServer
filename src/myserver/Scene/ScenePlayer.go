@@ -220,6 +220,9 @@ func (this *ScenePlayer) handleUseItem(itype usercmd.ItemType) {
 	case usercmd.ItemType_dizzy:
 		//神魂颠倒
 		this.handleItemDizzy()
+	case usercmd.ItemType_speedup:
+		//加速
+		this.handleItemSpeedUp()
 	case usercmd.ItemType_unknown:
 		//未知道具
 		glog.Error("[bug]未知道具")
@@ -245,7 +248,12 @@ func (this *ScenePlayer) handleItemDyeing() {
 
 func (this *ScenePlayer) handleItemDizzy() {
 	this.RemoveItem(usercmd.ItemType_dizzy)
-	this.room.DizzyFun(this.PlayerId)
+	this.room.DizzyFun(this.Color)
+}
+
+func (this *ScenePlayer) handleItemSpeedUp() {
+	this.RemoveItem(usercmd.ItemType_speedup)
+	this.room.SpeedUpFun(this.PlayerId)
 }
 
 func (this *ScenePlayer) GetItem(itype usercmd.ItemType) {
